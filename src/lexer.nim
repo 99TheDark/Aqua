@@ -1,6 +1,6 @@
 import Token, Location, Type
-import unicode
-import sequtils
+import unicode, sequtils
+import strutils except Whitespace
 
 type Lexer* = ref object of RootObj
   code: seq[Rune]
@@ -42,6 +42,10 @@ proc addIdent(self: Lexer, capture: seq[Rune], capStart: Location): bool =
         if keyword == $capture:
           identType = typ
           break main
+
+    let firstChar = ($capture)[0]
+    if firstChar.isDigit() or firstChar == '.':
+      identType = Number
 
     let tok = Token(
       val: $capture,
@@ -107,8 +111,7 @@ proc lex*(self: Lexer) =
 
 proc filter*(self: Lexer) =
   self.tokens = self.tokens.filter(
-    proc(tok: Token): bool =
-    tok.typ != Whitespace
+    proc(tok: Token): bool = tok.typ != Whitespace
   )
 
 proc newLexer*(src: string): Lexer =
