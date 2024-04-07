@@ -1,4 +1,6 @@
-type Location* = object
-  idx*: uint
-  row*: uint
-  col*: uint
+type Location* = ref object of RootObj
+  idx*: int
+  row*: int
+  col*: int
+
+proc emptyLoc*(): Location = Location(idx: 0, row: 0, col: 0)
