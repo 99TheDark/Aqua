@@ -99,7 +99,6 @@ proc lex*(self: Lexer) =
 
   # Add EOF token as well
   self.tokens.add(Token(
-    val: "",
     left: self.loc.clone(),
     right: self.loc.clone(),
     size: 0,
