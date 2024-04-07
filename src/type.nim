@@ -3,7 +3,6 @@ type Type* = enum
   Identifier
   Number
   Boolean
-  String
   Null
 
   # Delimiters
@@ -18,6 +17,13 @@ type Type* = enum
   RightBracket
   LeftBrace
   RightBrace
+
+  # Groups
+  Comment
+  MultiCommentStart
+  MultiCommentEnd
+  Quote
+  DoubleQuote
 
   # Declaration
   Let
@@ -201,6 +207,11 @@ const Symbols* = {
   "]": RightBracket,
   "{": LeftBrace,
   "}": RightBrace,
+  "//": Comment,
+  "/*": MultiCommentStart,
+  "*/": MultiCommentEnd,
+  "'": Quote,
+  "\"": DoubleQuote,
   ":": Colon,
   "=": Assign,
   "+": Addition,

@@ -1,3 +1,19 @@
+// Some comment at the top
 let x = 5
 let y: int = -7
 const z = x + y * x
+
+// 'a' and 'b' are both true
+let a, b: bool = true
+
+// 'c' is false and 'd' is -2.5
+let c: bool, d: float = false, -2.5
+
+// Note: With type annotations, either the last one annotates every variable or every variable is annotated
+
+let str = "Hello, world!"
+/*
+Some multiline comment...
+/* with a multiline comment inside of that! */
+Woah.
+*/

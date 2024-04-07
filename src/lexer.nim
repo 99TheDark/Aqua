@@ -1,10 +1,16 @@
-import Token, Location, Type
-import unicode, sequtils
+import Token, Location, Type, Group
+import unicode, sequtils, pretty
 import strutils except Whitespace
 
+# Extend seq[T] to give last/top item
+proc top[T](self: seq[T]): T = self[self.len() - 1]
+
+# Lexer
 type Lexer* = ref object of RootObj
   code: seq[Rune]
   loc: Location
+  groupStack*: seq[Group] # Temporarily public
+  lexNorm: bool
   tokens*: seq[Token]
 
 # Many private methods for lexing
@@ -35,7 +41,6 @@ proc add(self: Lexer, tok: Token) =
 proc addIdent(self: Lexer, capture: seq[Rune], capStart: Location): bool =
   let size = capture.len()
   if size != 0:
-    # TODO: Add number parsing, etc
     var identType = Identifier
     block main:
       for (keyword, typ) in Keywords:
@@ -80,24 +85,45 @@ proc symbol(self: Lexer): (bool, Token) =
     )
     return (true, tok)
 
+proc group(self: Lexer) =
+  # Make sure this never happens
+  if self.tokens.len() == 0:
+    return
+
+  let last = self.tokens.top()
+  if self.groupStack.len() == 0:
+    for group in OpenGroups:
+      if group.left == last.typ:
+        self.groupStack.add(group)
+        self.lexNorm = false
+        return
+
 # Important public methods & procedures
-# TODO: Use more refs, less copying data over
 proc lex*(self: Lexer) =
   var capture: seq[Rune] = @[]
   var capStart = emptyLoc()
   while self.loc.idx < self.code.len():
     let (isSymbol, symbol) = self.symbol()
-    if isSymbol:
-      if self.addIdent(capture, capStart):
-        capture.setLen(0)
+    if self.lexNorm:
+      if isSymbol:
+        if self.addIdent(capture, capStart):
+          capture.setLen(0)
 
-      self.add(symbol)
+        self.add(symbol)
+      else:
+        if capture.len() == 0:
+          capStart = self.loc.clone()
+
+        capture.add(self.at())
+        self.loc.next()
     else:
-      if capture.len() == 0:
-        capStart = self.loc.clone()
+      let group = self.groupStack.top()
+      if isSymbol and group.right == symbol.typ:
+        print symbol
 
-      capture.add(self.at())
       self.loc.next()
+
+    self.group()
 
   discard self.addIdent(capture, capStart)
 
@@ -115,4 +141,10 @@ proc filter*(self: Lexer) =
   )
 
 proc newLexer*(src: string): Lexer =
-  return Lexer(code: src.toRunes(), loc: emptyLoc(), tokens: @[])
+  Lexer(
+    code: src.toRunes(),
+    loc: emptyLoc(),
+    groupStack: @[],
+    lexNorm: true,
+    tokens: @[],
+  )

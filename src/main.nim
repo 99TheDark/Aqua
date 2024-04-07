@@ -9,4 +9,5 @@ var aLexer = newLexer(src)
 aLexer.lex()
 aLexer.filter()
 
+print aLexer.groupStack
 print aLexer.tokens

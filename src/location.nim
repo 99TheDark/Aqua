@@ -9,8 +9,6 @@ proc shift*(self: Location, count: int) =
 
 proc next*(self: Location) = self.shift(1)
 
-proc clone*(self: Location): Location =
-  Location(idx: self.idx, row: self.row, col: self.col)
+proc clone*(self: Location): Location = Location(idx: self.idx, row: self.row, col: self.col)
 
-proc emptyLoc*(): Location =
-  Location(idx: 0, row: 0, col: 0)
+proc emptyLoc*(): Location = Location(idx: 0, row: 0, col: 0)
