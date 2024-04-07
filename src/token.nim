@@ -6,5 +6,5 @@ type Token* = ref object of RootObj
   right*: Location
   typ*: Type
 
-proc len*(self: Token): uint =
+proc len*(self: Token): int =
   return self.right.idx - self.left.idx
