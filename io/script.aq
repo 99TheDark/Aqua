@@ -12,8 +12,7 @@ let c: bool, d: float = false, -2.5
 // Note: With type annotations, either the last one annotates every variable or every variable is annotated
 
 let str = "Hello, world!"
+
 /*
 Some multiline comment...
-/* with a multiline comment inside of that! */
-Woah.
-*/
+*/ 

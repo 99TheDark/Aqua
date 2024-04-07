@@ -88,15 +88,25 @@ proc symbol(self: Lexer): (bool, Token) =
 
 proc group(self: Lexer) =
   # Make sure this never happens
-  if self.tokens.len() == 0:
+  if self.tokens.len() == 0 or self.groupStack.len() != 0:
     return
 
   let last = self.tokens.top()
-  if self.groupStack.len() == 0:
-    for group in OpenGroups:
-      if group.left == last.typ:
-        self.groupStack.add(group)
-        return
+  for group in OpenGroups:
+    if group.left == last.typ:
+      self.groupStack.add(group)
+      return
+
+proc addGroup(self: Lexer, group: Group) =
+  let left = self.tokens.top().right.clone()
+  let right = self.loc.clone()
+  self.tokens.add(Token(
+    val: $self.code[left.idx..<right.idx],
+    left: left,
+    right: right,
+    size: right.idx - left.idx,
+    typ: group.inner,
+  ))
 
 # Important public methods & procedures
 proc lex*(self: Lexer) =
@@ -104,7 +114,7 @@ proc lex*(self: Lexer) =
   var capStart = emptyLoc()
   while self.loc.idx < self.code.len():
     let (isSymbol, symbol) = self.symbol()
-    if self.lexNorm():
+    if self.lexNorm:
       if isSymbol:
         if self.addIdent(capture, capStart):
           capture.setLen(0)
@@ -119,24 +129,22 @@ proc lex*(self: Lexer) =
     else:
       let group = self.groupStack.top()
       if isSymbol and group.right == symbol.typ:
-        let left = self.tokens.top().right.clone()
-        let right = self.loc.clone()
-        self.tokens.add(Token(
-          val: $self.code[left.idx..<right.idx],
-          left: left,
-          right: right,
-          size: right.idx - left.idx,
-          typ: group.inner,
-        ))
-
+        self.addGroup(group)
         self.add(symbol)
         discard self.groupStack.pop()
+        continue
       else:
         self.loc.next()
 
     self.group()
 
-  discard self.addIdent(capture, capStart)
+  let identAdded = self.addIdent(capture, capStart)
+  if not (self.lexNorm or identAdded):
+    #[let (isSymbol, symbol) = self.symbol()
+    if isSymbol:
+      self.addGroup(self.groupStack.pop())
+      self.add(symbol)]#
+    discard
 
   # Add EOF token as well
   self.tokens.add(Token(
