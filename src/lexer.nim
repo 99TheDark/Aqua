@@ -1,5 +1,5 @@
 import Token, Location, Type, Group
-import unicode, sequtils, pretty
+import unicode, sequtils
 import strutils except Whitespace
 
 # Extend seq[T] to give last/top item
@@ -10,10 +10,11 @@ type Lexer* = ref object of RootObj
   code: seq[Rune]
   loc: Location
   groupStack*: seq[Group] # Temporarily public
-  lexNorm: bool
   tokens*: seq[Token]
 
 # Many private methods for lexing
+proc lexNorm(self: Lexer): bool = self.groupStack.len() == 0
+
 proc at(self: Lexer): Rune = self.code[self.loc.idx]
 
 proc ahead(self: Lexer, count: int): seq[Rune] =
@@ -95,7 +96,6 @@ proc group(self: Lexer) =
     for group in OpenGroups:
       if group.left == last.typ:
         self.groupStack.add(group)
-        self.lexNorm = false
         return
 
 # Important public methods & procedures
@@ -104,7 +104,7 @@ proc lex*(self: Lexer) =
   var capStart = emptyLoc()
   while self.loc.idx < self.code.len():
     let (isSymbol, symbol) = self.symbol()
-    if self.lexNorm:
+    if self.lexNorm():
       if isSymbol:
         if self.addIdent(capture, capStart):
           capture.setLen(0)
@@ -119,7 +119,18 @@ proc lex*(self: Lexer) =
     else:
       let group = self.groupStack.top()
       if isSymbol and group.right == symbol.typ:
-        print symbol
+        #[let left = self.tokens.top().right.clone()
+        let right = self.loc.clone()
+        self.tokens.add(Token(
+          val: $self.code[left.idx..right.idx],
+          left: left,
+          right: right,
+          size: right.idx - left.idx,
+          typ: group.inner,
+        ))]#
+
+        # discard self.groupStack.pop()
+        echo "end"
 
       self.loc.next()
 
@@ -145,6 +156,5 @@ proc newLexer*(src: string): Lexer =
     code: src.toRunes(),
     loc: emptyLoc(),
     groupStack: @[],
-    lexNorm: true,
     tokens: @[],
   )

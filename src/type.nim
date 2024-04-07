@@ -3,6 +3,8 @@ type Type* = enum
   Identifier
   Number
   Boolean
+  String
+  Rune
   Null
 
   # Delimiters
@@ -20,6 +22,8 @@ type Type* = enum
 
   # Groups
   Comment
+  CommentStart
+  MultiComment
   MultiCommentStart
   MultiCommentEnd
   Quote
@@ -207,7 +211,7 @@ const Symbols* = {
   "]": RightBracket,
   "{": LeftBrace,
   "}": RightBrace,
-  "//": Comment,
+  "//": CommentStart,
   "/*": MultiCommentStart,
   "*/": MultiCommentEnd,
   "'": Quote,

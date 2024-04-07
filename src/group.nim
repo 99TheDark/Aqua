@@ -1,37 +1,42 @@
 import Type
 
 type GroupType* = enum
-  String
-  Rune
-  SingleComment
-  MultiComment
-  EmbeddedExpr
+  StringGroup
+  RuneGroup
+  CommentGroup
+  MultiCommentGroup
+  EmbeddedGroup
 
 type Group* = object
   typ*: GroupType
   left*: Type
   right*: Type
+  inner*: Type
 
-# Groups that can start anywhere (so not EmbeddedExpr, which is $() inside a String)
+# Groups that can start anywhere (so not EmbeddedGroup, which is $() inside a StringGroup)
 const OpenGroups* = [
   Group(
-    typ: SingleComment,
-    left: Comment,
+    typ: CommentGroup,
+    left: CommentStart,
     right: NewLine,
+    inner: Comment,
   ),
   Group(
-    typ: MultiComment,
+    typ: MultiCommentGroup,
+    left: MultiCommentStart,
+    right: MultiCommentEnd,
+    inner: MultiComment,
+  ),
+  Group(
+    typ: StringGroup,
     left: DoubleQuote,
     right: DoubleQuote,
+    inner: String,
   ),
   Group(
-    typ: String,
-    left: DoubleQuote,
-    right: DoubleQuote,
-  ),
-  Group(
-    typ: Rune,
+    typ: RuneGroup,
     left: Quote,
     right: Quote,
+    inner: Rune,
   ),
 ]
