@@ -136,6 +136,7 @@ type Type* = enum
   Optional
   Eof
 
+# Many constants (groups)
 const Keywords* = {
   "true": Boolean,
   "false": Boolean,
@@ -245,7 +246,7 @@ const Symbols* = {
   "?": Optional,
 }
 
-const Operators = [
+const Operators* = [
   Addition,
   Subtraction,
   Multiplication,
