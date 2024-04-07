@@ -87,7 +87,7 @@ proc symbol(self: Lexer): (bool, Token) =
     return (true, tok)
 
 proc group(self: Lexer) =
-  # Make sure this never happens
+  # Stop index out of bounds errors
   if self.tokens.len() == 0 or self.groupStack.len() != 0:
     return
 
@@ -128,23 +128,24 @@ proc lex*(self: Lexer) =
         self.loc.next()
     else:
       let group = self.groupStack.top()
-      if isSymbol and group.right == symbol.typ:
-        self.addGroup(group)
-        self.add(symbol)
-        discard self.groupStack.pop()
+      if isSymbol:
+        if group.recursive and group.left == symbol.typ:
+          self.addGroup(group)
+          self.add(symbol)
+          self.groupStack.add(group)
+        elif group.right == symbol.typ:
+          self.addGroup(group)
+          self.add(symbol)
+          discard self.groupStack.pop()
+        else:
+          self.loc.next()
         continue
       else:
         self.loc.next()
 
     self.group()
 
-  let identAdded = self.addIdent(capture, capStart)
-  if not (self.lexNorm or identAdded):
-    #[let (isSymbol, symbol) = self.symbol()
-    if isSymbol:
-      self.addGroup(self.groupStack.pop())
-      self.add(symbol)]#
-    discard
+  discard self.addIdent(capture, capStart)
 
   # Add EOF token as well
   self.tokens.add(Token(

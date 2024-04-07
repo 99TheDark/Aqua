@@ -5,6 +5,7 @@ type GroupType* = enum
   RuneGroup
   CommentGroup
   MultiCommentGroup
+  NumericGroup
   EmbeddedGroup
 
 type Group* = object
@@ -12,6 +13,7 @@ type Group* = object
   left*: Type
   right*: Type
   inner*: Type
+  recursive*: bool = false
 
 # Groups that can start anywhere (so not EmbeddedGroup, which is $() inside a StringGroup)
 const OpenGroups* = [
@@ -26,6 +28,7 @@ const OpenGroups* = [
     left: MultiCommentStart,
     right: MultiCommentEnd,
     inner: MultiComment,
+    recursive: true,
   ),
   Group(
     typ: StringGroup,
