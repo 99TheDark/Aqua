@@ -1,5 +1,6 @@
 import Token, Location, Type
 import unicode
+import sequtils
 
 type Lexer* = ref object of RootObj
   code: seq[Rune]
@@ -104,6 +105,12 @@ proc lex*(self: Lexer) =
     size: 0,
     typ: Eof
   ))
+
+proc filter*(self: Lexer) =
+  self.tokens = self.tokens.filter(
+    proc(tok: Token): bool =
+    tok.typ != Whitespace
+  )
 
 proc newLexer*(src: string): Lexer =
   return Lexer(code: src.toRunes(), loc: emptyLoc(), tokens: @[])

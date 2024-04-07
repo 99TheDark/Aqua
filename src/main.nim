@@ -7,5 +7,6 @@ var src = readFile("io/script.aq")
 var aLexer = newLexer(src)
 
 aLexer.lex()
+aLexer.filter()
 
 print aLexer.tokens
