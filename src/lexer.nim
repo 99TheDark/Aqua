@@ -119,20 +119,20 @@ proc lex*(self: Lexer) =
     else:
       let group = self.groupStack.top()
       if isSymbol and group.right == symbol.typ:
-        #[let left = self.tokens.top().right.clone()
+        let left = self.tokens.top().right.clone()
         let right = self.loc.clone()
         self.tokens.add(Token(
-          val: $self.code[left.idx..right.idx],
+          val: $self.code[left.idx..<right.idx],
           left: left,
           right: right,
           size: right.idx - left.idx,
           typ: group.inner,
-        ))]#
+        ))
 
-        # discard self.groupStack.pop()
-        echo "end"
-
-      self.loc.next()
+        self.add(symbol)
+        discard self.groupStack.pop()
+      else:
+        self.loc.next()
 
     self.group()
 
