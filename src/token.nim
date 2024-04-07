@@ -4,7 +4,5 @@ type Token* = ref object of RootObj
   val*: string
   left*: Location
   right*: Location
+  size*: int
   typ*: Type
-
-proc len*(self: Token): int =
-  return self.right.idx - self.left.idx
