@@ -1,92 +1,140 @@
 type Type* = enum
   # Basic Types
-  Identifier,
-  Number,
-  Boolean,
-  String,
-  Null,
+  Identifier
+  Number
+  Boolean
+  String
+  Null
 
   # Delimiters
-  Comma,
-  Semicolon,
-  NewLine,
+  Comma
+  Semicolon
+  NewLine
 
   # Wrappers
-  LeftParen,
-  RightParen,
-  LeftBracket,
-  RightBracket,
-  LeftBrace,
-  RightBrace,
+  LeftParen
+  RightParen
+  LeftBracket
+  RightBracket
+  LeftBrace
+  RightBrace
 
   # Declaration
-  Let,
-  Const,
-  Colon,
-  Assign,
+  Let
+  Const
+  Colon
+  Assign
 
-  # Binary operators
+  # Numerical operators
+  Addition
+  Subtraction
+  Multiplication
+  Division
+  Exponentiation
+  Modulo
 
-  # Unary operators
+  # Logical operators
+  And
+  Or
+  Nand
+  Nor
+  Xand
+  Xor
+  Not
+
+  # Bitwise operators
+  RightShift
+  LeftShift
+  ZeroFillRightShift
+  CountLeadingZeroes
+  CountTrailingZeroes
 
   # Comparisons
-  In,
+  Equal
+  NotEqual
+  GreaterThan
+  LessThan
+  GreaterThanOrEqual
+  LessThanOrEqual
+  In
+
+  # Wrapped operators
+  WrappedAddition
+  WrappedSubtraction
+  WrappedMultiplication
+  WrappedLeftShift
 
   # Control flow
-  If,
-  Else,
-  For,
-  While,
-  Do,
-  Loop,
-  Match,
-  Break,
-  Continue,
+  If
+  Else
+  For
+  While
+  Do
+  Loop
+  Match
+  FatArrow
+  PatternBinder
+  Break
+  Continue
 
   # Visibility and data movement
-  Public,
-  Private,
-  Inner,
-  Module,
-  Use,
+  Public
+  Private
+  Inner
+  Module
+  Use
 
   # Complex types
-  Class,
-  New,
-  From,
-  To,
-  Oper,
-  Self,
-  Super,
-  Trait,
-  Implement,
-  Enum,
-  Function,
-  Return,
-  Defer,
-  Yield,
+  Class
+  New
+  From
+  To
+  Oper
+  Self
+  Super
+  Trait
+  Implement
+  Enum
+  Function
+  Return
+  Defer
+  Yield
+
+  # Accessor
+  Dot
+  DoubleColon
+  OptionalChain
 
   # Error handling
-  Throw,
-  Try,
-  Catch,
-  Error,
+  Throw
+  Try
+  Catch
+  Error
 
   # Testing
-  Assert,
-  Test,
+  Assert
+  Test
 
   # Generics
-  Where,
-  When,
-  Known,
-  Is,
-  IsNot,
+  Where
+  When
+  Known
+  Is
+  IsNot
+
+  # Labels
+  ArrayLabel
+  TupleLabel
 
   # Misc
-  Whitespace,
-  Alias,
-  Macro,
-  Co,
-  Todo,
-  EOF,
+  Whitespace
+  Alias
+  Macro
+  Co
+  Todo
+  Spread
+  Range
+  Symbol
+  Nullish
+  Optional
+  EOF
