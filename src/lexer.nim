@@ -25,7 +25,7 @@ proc add(self: Lexer, tok: Token) =
   let tok = Token(
     val: tok.val,
     left: tok.left,
-    right: self.loc,
+    right: self.loc.clone(),
     size: tok.size,
     typ: tok.typ
   )
@@ -44,8 +44,8 @@ proc addIdent(self: Lexer, capture: seq[Rune], capStart: Location): bool =
 
     let tok = Token(
       val: $capture,
-      left: capStart,
-      right: self.loc,
+      left: capStart.clone(),
+      right: self.loc.clone(),
       size: capture.len(),
       typ: identType,
     )
@@ -67,7 +67,12 @@ proc symbol(self: Lexer): (bool, Token) =
   if maxLen == 0:
     return (false, Token())
   else:
-    let tok = Token(val: $self.ahead(maxLen), left: self.loc, size: maxLen, typ: symType)
+    let tok = Token(
+      val: $self.ahead(maxLen),
+      left: self.loc.clone(),
+      size: maxLen,
+      typ: symType
+    )
     return (true, tok)
 
 # Important public methods & procedures
@@ -84,7 +89,7 @@ proc lex*(self: Lexer) =
       self.add(symbol)
     else:
       if capture.len() == 0:
-        capStart = self.loc
+        capStart = self.loc.clone()
 
       capture.add(self.at())
       self.loc.next()
@@ -92,7 +97,13 @@ proc lex*(self: Lexer) =
   discard self.addIdent(capture, capStart)
 
   # Add EOF token as well
-  self.tokens.add(Token(val: "", left: self.loc, right: self.loc, size: 0, typ: Eof))
+  self.tokens.add(Token(
+    val: "",
+    left: self.loc.clone(),
+    right: self.loc.clone(),
+    size: 0,
+    typ: Eof
+  ))
 
 proc newLexer*(src: string): Lexer =
   return Lexer(code: src.toRunes(), loc: emptyLoc(), tokens: @[])
