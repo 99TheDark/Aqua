@@ -1,4 +1,4 @@
-# import pretty
+import pretty
 import Lexer
 
 var src = readFile("io/script.aq")
@@ -8,3 +8,4 @@ var aLexer = newLexer(src)
 
 aLexer.lex()
 
+print aLexer.tokens

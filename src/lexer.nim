@@ -10,8 +10,50 @@ type Lexer* = ref object of RootObj
 proc at(self: Lexer): Rune = self.code[self.loc.idx]
 
 proc ahead(self: Lexer, count: int): seq[Rune] =
-  let i = self.loc.idx
-  self.code[i..<i+count]
+  let start = self.loc.idx
+  let cap = min(start + count, self.code.len())
+  self.code[start..<cap]
+
+proc add(self: Lexer, tok: Token) =
+  self.loc.idx += tok.size
+  if tok.typ == NewLine:
+    self.loc.row += 1
+    self.loc.col = 0
+  else:
+    self.loc.col += tok.size
+
+  let tok = Token(
+    val: tok.val,
+    left: tok.left,
+    right: self.loc,
+    size: tok.size,
+    typ: tok.typ
+  )
+  self.tokens.add(tok)
+
+proc addIdent(self: Lexer, capture: seq[Rune], capStart: Location): bool =
+  let size = capture.len()
+  if size != 0:
+    # TODO: Add number parsing, etc
+    var identType = Identifier
+    block main:
+      for (keyword, typ) in Keywords:
+        if keyword == $capture:
+          identType = typ
+          break main
+
+    let tok = Token(
+      val: $capture,
+      left: capStart,
+      right: self.loc,
+      size: capture.len(),
+      typ: identType,
+    )
+    self.tokens.add(tok)
+
+    return true
+
+  return false
 
 proc symbol(self: Lexer): (bool, Token) =
   var maxLen = 0
@@ -25,7 +67,7 @@ proc symbol(self: Lexer): (bool, Token) =
   if maxLen == 0:
     return (false, Token())
   else:
-    let tok = Token(left: self.loc, size: maxLen, typ: symType)
+    let tok = Token(val: $self.ahead(maxLen), left: self.loc, size: maxLen, typ: symType)
     return (true, tok)
 
 # Important public methods & procedures
@@ -36,19 +78,21 @@ proc lex*(self: Lexer) =
   while self.loc.idx < self.code.len():
     let (isSymbol, symbol) = self.symbol()
     if isSymbol:
-      #[
-        if self.pushIdent(capture, capStart):
-          capture.setLen(0)
-        
-        self.push(symbol)
-      ]#
-      discard
+      if self.addIdent(capture, capStart):
+        capture.setLen(0)
+
+      self.add(symbol)
     else:
       if capture.len() == 0:
         capStart = self.loc
 
       capture.add(self.at())
-      # self.loc.next()
+      self.loc.next()
+
+  discard self.addIdent(capture, capStart)
+
+  # Add EOF token as well
+  self.tokens.add(Token(val: "", left: self.loc, right: self.loc, size: 0, typ: Eof))
 
 proc newLexer*(src: string): Lexer =
   return Lexer(code: src.toRunes(), loc: emptyLoc(), tokens: @[])

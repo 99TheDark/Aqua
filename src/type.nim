@@ -122,10 +122,6 @@ type Type* = enum
   Is
   IsNot
 
-  # Labels
-  ArrayLabel
-  TupleLabel
-
   # Misc
   Whitespace
   Alias
@@ -239,8 +235,6 @@ const Symbols* = {
   ".": Dot,
   "::": DoubleColon,
   "?.": OptionalChain,
-  "[]": ArrayLabel,
-  "()": TupleLabel,
   " ": Whitespace,
   "\t": Whitespace,
   "\v": Whitespace,
