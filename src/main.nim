@@ -1,5 +1,5 @@
 import pretty
-import Lexer
+import lex/Lexer
 
 var src = readFile("io/script.aq")
 

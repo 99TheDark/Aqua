@@ -1,4 +1,4 @@
-import Token, Location, Type, Group
+import ../Token, Location, ../Type, Group, Number
 import unicode, sequtils
 import strutils except Whitespace
 
@@ -115,6 +115,9 @@ proc lex*(self: Lexer) =
   while self.loc.idx < self.code.len():
     let (isSymbol, symbol) = self.symbol()
     if self.lexNorm:
+      #[if self.at().numericStart():
+        echo "It's a number! " & $self.at()]#
+
       if isSymbol:
         if self.addIdent(capture, capStart):
           capture.setLen(0)

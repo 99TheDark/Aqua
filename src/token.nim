@@ -1,4 +1,4 @@
-import Location, Type
+import lex/Location, Type
 
 type Token* = ref object of RootObj
   val*: string

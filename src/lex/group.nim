@@ -1,4 +1,4 @@
-import Type
+import ../Type
 
 type GroupType* = enum
   StringGroup
