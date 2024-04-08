@@ -119,7 +119,6 @@ proc lex*(self: Lexer) =
       if not self.numeric and capture.len() == 0 and self.at().isNumeric():
         self.numeric = true
         capStart = self.loc.clone()
-        echo "It's number time ", self.at()
         continue
 
       if isSymbol and (not self.numeric or symbol.typ != Dot):
