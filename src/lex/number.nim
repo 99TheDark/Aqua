@@ -8,9 +8,6 @@ const BaseNumberSymbols* = {
   16: 'x',
 }
 
-proc numericStart*(r: Rune): bool =
-  if r == Rune('.'):
-    return true
-
-  let num = cast[int](r)
-  return 48 <= num and num <= 57
+proc isNumeric*(self: Rune): bool =
+  let num = cast[int](self)
+  48 <= num and num <= 57

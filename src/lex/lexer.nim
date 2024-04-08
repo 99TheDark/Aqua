@@ -10,6 +10,7 @@ type Lexer* = ref object of RootObj
   code: seq[Rune]
   loc: Location
   groupStack: seq[Group]
+  numeric: bool
   tokens*: seq[Token]
 
 # Many private methods for lexing
@@ -115,10 +116,13 @@ proc lex*(self: Lexer) =
   while self.loc.idx < self.code.len():
     let (isSymbol, symbol) = self.symbol()
     if self.lexNorm:
-      #[if self.at().numericStart():
-        echo "It's a number! " & $self.at()]#
+      if not self.numeric and capture.len() == 0 and self.at().isNumeric():
+        self.numeric = true
+        capStart = self.loc.clone()
+        echo "It's number time ", self.at()
+        continue
 
-      if isSymbol:
+      if isSymbol and (not self.numeric or symbol.typ != Dot):
         if self.addIdent(capture, capStart):
           capture.setLen(0)
 
@@ -155,7 +159,7 @@ proc lex*(self: Lexer) =
     left: self.loc.clone(),
     right: self.loc.clone(),
     size: 0,
-    typ: Eof
+    typ: Eof,
   ))
 
 proc filter*(self: Lexer) =
@@ -168,5 +172,6 @@ proc newLexer*(src: string): Lexer =
     code: src.toRunes(),
     loc: emptyLoc(),
     groupStack: @[],
+    numeric: false,
     tokens: @[],
   )

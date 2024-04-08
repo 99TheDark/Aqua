@@ -5,7 +5,6 @@ type GroupType* = enum
   RuneGroup
   CommentGroup
   MultiCommentGroup
-  NumericGroup
   EmbeddedGroup
 
 type Group* = object
