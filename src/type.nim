@@ -109,6 +109,7 @@ type Type* = enum
   Return
   Defer
   Yield
+  Distinct
 
   # Accessor
   Dot
@@ -182,6 +183,7 @@ const Keywords* = {
   "return": Return,
   "defer": Defer,
   "yield": Yield,
+  "distinct": Distinct,
   "throw": Throw,
   "try": Try,
   "catch": Catch,
