@@ -9,7 +9,7 @@ proc top[T](self: seq[T]): T = self[self.len() - 1]
 type Lexer* = ref object of RootObj
   code: seq[Rune]
   loc: Location
-  groupStack*: seq[Group] # Temporarily public
+  groupStack: seq[Group]
   tokens*: seq[Token]
 
 # Many private methods for lexing
