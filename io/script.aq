@@ -1,10 +1,10 @@
+let interpolated = "$(3 + (7 - 2)) == 10, $(false | true)"
+
+let decimalNoZero = .05
 let floatNum = -304.76528994
 let intNum = 782
-let hexNum = 0x47
+let hexNum = 0x4F7B
 let expNum = 4.016e-7
-let interpolated = "$(3 + 7) == 10"
-
-/*
 
 // Some comment at the top
 let x = 5
@@ -26,5 +26,3 @@ Some multiline comment...
 /* with a multiline comment inside of that! */
 Woah.
 */ 
-
-*/

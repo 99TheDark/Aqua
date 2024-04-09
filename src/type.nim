@@ -145,6 +145,10 @@ type Type* = enum
   Symbol
   Nullish
   Optional
+  StringInterpolation
+
+  # Special
+  None
   Eof
 
 # Many constants (groups)

@@ -5,16 +5,16 @@ type GroupType* = enum
   RuneGroup
   CommentGroup
   MultiCommentGroup
-  EmbeddedGroup
+  InterpolateGroup
 
 type Group* = object
   typ*: GroupType
-  left*: Type
-  right*: Type
-  inner*: Type
+  left*: Type = None
+  right*: Type = None
+  inner*: Type = None
   recursive*: bool = false
 
-# Groups that can start anywhere (so not EmbeddedGroup, which is $() inside a StringGroup)
+# Groups that can start anywhere (so not InterpolateGroup, which is $() inside a StringGroup)
 const OpenGroups* = [
   Group(
     typ: CommentGroup,
@@ -42,3 +42,5 @@ const OpenGroups* = [
     inner: Rune,
   ),
 ]
+
+const ClosedInterpolateGroup* = Group(typ: InterpolateGroup)

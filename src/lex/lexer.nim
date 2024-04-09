@@ -11,10 +11,15 @@ type Lexer* = ref object of RootObj
   loc: Location
   groupStack: seq[Group]
   numeric: bool
+  parenCount: int
   tokens*: seq[Token]
 
 # Many private methods for lexing
-proc lexNorm(self: Lexer): bool = self.groupStack.len() == 0
+proc lexNorm(self: Lexer): bool =
+  if self.groupStack.len() == 0:
+    return true
+
+  self.groupStack.top().typ == InterpolateGroup
 
 proc at(self: Lexer): Rune = self.code[self.loc.idx]
 
@@ -22,6 +27,24 @@ proc ahead(self: Lexer, count: int): seq[Rune] =
   let start = self.loc.idx
   let cap = min(start + count, self.code.len())
   self.code[start..<cap]
+
+proc behind(self: Lexer, count: int): seq[Rune] =
+  let start = self.loc.idx + 1
+  let cap = max(start - count, 0)
+  self.code[cap..<start]
+
+proc shouldSkip(self: Lexer, symbol: Token): bool =
+  if not self.numeric:
+    return false
+
+  # From now on, it is the numeric mode
+  if symbol.typ == Dot:
+    return true
+
+  if $self.behind(2) == "e-":
+    return true
+
+  false
 
 proc add(self: Lexer, tok: Token) =
   self.loc.idx += tok.size
@@ -101,6 +124,11 @@ proc group(self: Lexer) =
 proc addGroup(self: Lexer, group: Group) =
   let left = self.tokens.top().right.clone()
   let right = self.loc.clone()
+
+  # Don't add literally nothing
+  if left.idx == right.idx:
+    return
+
   self.tokens.add(Token(
     val: $self.code[left.idx..<right.idx],
     left: left,
@@ -118,14 +146,26 @@ proc lex*(self: Lexer) =
     if self.lexNorm:
       if not self.numeric and capture.len() == 0 and self.at().isNumeric():
         self.numeric = true
-        capStart = self.loc.clone()
         continue
 
-      if isSymbol and (not self.numeric or symbol.typ != Dot):
+      if isSymbol and not self.shouldSkip(symbol):
         if self.addIdent(capture, capStart):
           capture.setLen(0)
 
         self.add(symbol)
+
+        # Don't try to access and compute nothing
+        if self.groupStack.len() != 0:
+          let group = self.groupStack.top()
+          if group.typ == InterpolateGroup:
+            if symbol.typ == LeftParen:
+              self.parenCount += 1
+            elif symbol.typ == RightParen:
+              if self.parenCount == 0:
+                self.addGroup(group)
+                discard self.groupStack.pop()
+              else:
+                self.parenCount -= 1
       else:
         if capture.len() == 0:
           capStart = self.loc.clone()
@@ -134,6 +174,23 @@ proc lex*(self: Lexer) =
         self.loc.next()
     else:
       let group = self.groupStack.top()
+      if $self.ahead(2) == "$(":
+        self.addGroup(group)
+        self.add(Token(
+          val: "$",
+          left: self.loc.clone(),
+          size: 1,
+          typ: StringInterpolation,
+        ))
+        self.add(Token(
+          val: "(",
+          left: self.loc.clone(),
+          size: 1,
+          typ: LeftParen,
+        ))
+        self.groupStack.add(ClosedInterpolateGroup)
+        continue
+
       if isSymbol:
         if group.recursive and group.left == symbol.typ:
           self.addGroup(group)
@@ -172,5 +229,6 @@ proc newLexer*(src: string): Lexer =
     loc: emptyLoc(),
     groupStack: @[],
     numeric: false,
+    parenCount: 0,
     tokens: @[],
   )

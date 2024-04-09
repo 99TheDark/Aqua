@@ -1,6 +1,4 @@
 # TODO
-- Different base number lexing
-    - Don't ignore `.`
-- Scientific notation lexing
-    - Also ignore `-` if prefixed by `e` (`...e-...`)
-- Embedded groups `"I am $(x) years old"`
+- Begin parser
+- Finish up other language constructs & ideas
+- Polish and finish how the OOP system will work
