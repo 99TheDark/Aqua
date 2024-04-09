@@ -11,6 +11,8 @@ let x = 5
 let y: int = -7
 const z = x + y * x
 
+{ let var1 = 5; let var2 = 8 }
+
 // 'a' and 'b' are both true
 let a, b: bool = true
 

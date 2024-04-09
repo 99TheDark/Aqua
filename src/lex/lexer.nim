@@ -1,4 +1,4 @@
-import ../Token, Location, ../Type, Group, Number
+import ../token, location, ../types, group, number
 import unicode, sequtils
 import strutils except Whitespace
 
