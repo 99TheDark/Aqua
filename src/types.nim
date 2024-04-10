@@ -31,7 +31,7 @@ type TokenType* = enum
 
   # Declaration
   Let
-  Const
+  Var
   Colon
   Assign
 
@@ -157,7 +157,7 @@ const Keywords* = {
   "false": Boolean,
   "null": Null,
   "let": Let,
-  "const": Const,
+  "var": Var,
   "in": In,
   "if": If,
   "else": Else,

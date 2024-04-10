@@ -159,7 +159,7 @@ proc lex*(self: Lexer) =
           self.loc.next()
 
           let (symNext, next) = self.symbol()
-          if symNext and next.typ == Quote:
+          if symNext and next.typ == Quote and $ch != "\n":
             self.add(Token(
               val: $ch,
               left: self.loc.clone(),
