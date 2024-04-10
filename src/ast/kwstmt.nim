@@ -1,4 +1,4 @@
-import node, literal
+import node, base, literal
 
 type
   Return* = ref object of Node

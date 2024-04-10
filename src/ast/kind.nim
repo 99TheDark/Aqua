@@ -4,6 +4,6 @@ type
     RawString
   
   DeclKind* = enum 
+    VarDecl
     LetDecl
-    ConstDecl
   

@@ -1,9 +1,6 @@
-import node, kind, unique
+import node, base, kind
 
 type
-  Ident* = ref object of Node
-    name*: string
-
   Number* = ref object of Node
     val*: float
 

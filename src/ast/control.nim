@@ -1,4 +1,4 @@
-import node, literal
+import node, base
 
 type
   Block* = ref object of Node

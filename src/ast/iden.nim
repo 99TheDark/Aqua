@@ -1,9 +1,9 @@
-import node, literal, kind, unique, options, ../types
+import node, base, kind, unique, options, ../types
 
 type
   Decl* = ref object of Node
     kind*: DeclKind
-    idens*: List[Ident]
+    idens*: List[TypedIdent]
     vals*: List[Node]
   
   Assign* = ref object of Node

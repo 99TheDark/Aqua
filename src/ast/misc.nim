@@ -1,4 +1,4 @@
-import node, ../types, literal, unique
+import node, ../types, base
 
 type
   BinaryOp* = ref object of Node
