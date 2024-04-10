@@ -99,8 +99,6 @@ type TokenType* = enum
   # Complex types
   Class
   New
-  From
-  To
   Operator
   Self
   Super
@@ -137,6 +135,7 @@ type TokenType* = enum
 
   # Misc
   Whitespace
+  Cast
   Alias
   Macro
   Coroutine
@@ -176,8 +175,6 @@ const Keywords* = {
   "import": Import,
   "class": Class,
   "new": New,
-  "from": From,
-  "to": To,
   "oper": Operator,
   "self": Self,
   "super": Super,
@@ -200,6 +197,7 @@ const Keywords* = {
   "known": Known,
   "is": Is,
   "isnot": IsNot,
+  "cast": Cast,
   "alias": Alias,
   "macro": Macro,
   "co": Coroutine,
