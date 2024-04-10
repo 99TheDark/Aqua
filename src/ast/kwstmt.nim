@@ -25,8 +25,12 @@ type
   Test* = ref object of Node
     name*: RawString
   
+  Cast* = ref object of Node
+    to*: Ident # TODO: Also change to Type object
+    arg*: Node
+  
   Alias* = ref object of Node
     iden*: Ident
-    orig*: Node # TODO: Change to eventual Type object
+    orig*: Ident # TODO: Change to eventual Type object
   
   Todo* = ref object of Node

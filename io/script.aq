@@ -1,5 +1,16 @@
 let interpolated = "$(3 + (7 - 2)) == 10, $(false | true)"
 
+let character = 'π'
+'outer:
+for i in 0..10 {
+    for j in 0..30 {
+        if (i + j) % 7 == 0 {
+            print("$(i + j) was divisible by 7!")
+            break 'outer
+        }
+    }
+}
+
 let decimalNoZero = .05
 let floatNum = -304.76528994
 let intNum = 782

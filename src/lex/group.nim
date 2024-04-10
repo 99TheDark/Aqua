@@ -2,7 +2,6 @@ import ../types
 
 type GroupType* = enum
   StringGroup
-  RuneGroup
   CommentGroup
   MultiCommentGroup
   InterpolateGroup
@@ -34,12 +33,6 @@ const OpenGroups* = [
     left: DoubleQuote,
     right: DoubleQuote,
     inner: String,
-  ),
-  Group(
-    typ: RuneGroup,
-    left: Quote,
-    right: Quote,
-    inner: Rune,
   ),
 ]
 

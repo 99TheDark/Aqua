@@ -154,6 +154,29 @@ proc lex*(self: Lexer) =
 
         self.add(symbol)
 
+        if symbol.typ == Quote:
+          let ch = self.at()
+          self.loc.next()
+
+          let (symNext, next) = self.symbol()
+          if symNext and next.typ == Quote:
+            self.add(Token(
+              val: $ch,
+              left: self.loc.clone(),
+              size: 1,
+              typ: Rune,
+            ))
+            self.add(Token(
+              val: "'",
+              left: self.loc.clone(),
+              size: 1,
+              typ: Quote,
+            ))
+          else:
+            self.loc.prev()
+
+          continue
+
         # Don't try to access and compute nothing
         if self.groupStack.len() != 0:
           let group = self.groupStack.top()
