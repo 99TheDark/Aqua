@@ -9,9 +9,9 @@ type GroupType* = enum
 
 type Group* = object
   typ*: GroupType
-  left*: Type = None
-  right*: Type = None
-  inner*: Type = None
+  left*: TokenType = None
+  right*: TokenType = None
+  inner*: TokenType = None
   recursive*: bool = false
 
 # Groups that can start anywhere (so not InterpolateGroup, which is $() inside a StringGroup)

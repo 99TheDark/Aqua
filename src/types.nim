@@ -1,4 +1,4 @@
-type Type* = enum
+type TokenType* = enum
   # Basic Types
   Identifier
   Number
@@ -87,12 +87,14 @@ type Type* = enum
   Break
   Continue
 
-  # Visibility and data movement
+  # Visibility
   Public
   Private
   Inner
+
+  # Data movement
   Module
-  Use
+  Import
 
   # Complex types
   Class
@@ -142,7 +144,6 @@ type Type* = enum
   Spread
   Range
   RangeInclusive
-  Symbol
   Nullish
   Optional
   StringInterpolation
@@ -172,7 +173,7 @@ const Keywords* = {
   "pri": Private,
   "inn": Inner,
   "mod": Module,
-  "use": Use,
+  "import": Import,
   "class": Class,
   "new": New,
   "from": From,

@@ -5,4 +5,4 @@ type Token* = ref object of RootObj
   left*: Location
   right*: Location
   size*: int
-  typ*: Type
+  typ*: TokenType
