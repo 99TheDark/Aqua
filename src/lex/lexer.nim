@@ -6,7 +6,7 @@ import strutils except Whitespace
 proc top[T](self: seq[T]): T = self[self.len() - 1]
 
 # Lexer
-type Lexer* = ref object of RootObj
+type Lexer* = ref object
   code: seq[Rune]
   loc: Location
   groupStack: seq[Group]
@@ -164,7 +164,7 @@ proc lex*(self: Lexer) =
               val: $ch,
               left: self.loc.clone(),
               size: 1,
-              typ: Rune,
+              typ: Char,
             ))
             self.add(Token(
               val: "'",

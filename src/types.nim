@@ -1,10 +1,12 @@
+import tables, std/enumutils, std/re, strutils
+
 type TokenType* = enum
   # Basic Types
   Identifier
   Number
   Boolean
   String
-  Rune
+  Char
   Null
 
   # Delimiters
@@ -297,3 +299,17 @@ const Operators* = [
   WrappedLeftShift,
   Nullish,
 ]
+
+proc invTable[T = Ordinal](arr: openArray[(string, T)]): Table[T, string] =
+  var table = initTable[T, string](arr.len())
+  for (key, val) in arr:
+    if table.hasKey(val):
+      let spaced = val.symbolName.replacef(re"(?<=[a-z])([A-Z])", " $1")
+      table[val] = spaced.toLower()
+    else:
+      table[val] = key
+  
+  table
+
+let InvKeywords* = invTable(Keywords)
+let InvSymbols* = invTable(Symbols)
