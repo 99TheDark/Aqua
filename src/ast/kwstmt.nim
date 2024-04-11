@@ -26,11 +26,11 @@ type
     name*: RawString
   
   Cast* = ref object of Node
-    to*: Ident # TODO: Also change to Type object
+    to*: Node
     arg*: Node
   
   Alias* = ref object of Node
     iden*: Ident
-    orig*: Ident # TODO: Change to eventual Type object
+    orig*: Node
   
   Todo* = ref object of Node

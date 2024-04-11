@@ -1,6 +1,6 @@
-import node, options
+import node, base, options
 
 type 
   TypedIdent* = ref object of Node
     iden*: Ident
-    annot*: Option[Ident] # TODO: Also change to Type object
+    annot*: Option[Node]
