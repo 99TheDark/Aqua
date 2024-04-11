@@ -1,4 +1,5 @@
 import ../ast/node, ../token, ../types, ../error
+import strformat
 
 type Parser* = ref object
   tokens: seq[Token]
@@ -14,10 +15,10 @@ proc eat(self: Parser): Token =
 proc expect(self: Parser, expected: TokenType): Token = 
   let tok = self.eat()
   if tok.typ != expected:
-    panic(fmt"Expected {expected}")
+    panic(fmt"Expected {expected}, but got {tok.typ} instead")
 
 proc parse*(self: Parser): Node =
-  discard self.expect(RightParen)
+  discard self.expect(Whitespace)
 
 proc newParser*(tokens: seq[Token]): Parser =
   Parser(tokens: tokens, idx: 0)

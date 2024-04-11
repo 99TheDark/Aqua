@@ -1,4 +1,4 @@
-import tables, std/enumutils, std/re, strutils
+import tables, std/enumutils, std/re, strutils, strformat
 
 type TokenType* = enum
   # Basic Types
@@ -301,17 +301,27 @@ const Operators* = [
 ]
 
 proc formatName[T = Ordinal](self: T): string = 
-  self.symbolName.replacef(re"(?<=[a-z])([A-Z])", " $1")
+  self.symbolName.replacef(re"(?<=[a-z])([A-Z])", " $1").toLower()
 
 proc invTable[T = Ordinal](arr: openArray[(string, T)]): Table[T, string] =
   var table = initTable[T, string](arr.len())
+  var ignored: seq[T] = @[]
   for (key, val) in arr:
     if table.hasKey(val):
-      table[val] = val.formatName()
-    else:
+      table.del(val)
+      ignored.add(val)
+    elif val notin ignored:
       table[val] = key
   
   table
 
-let InvKeywords* = invTable(Keywords)
-let InvSymbols* = invTable(Symbols)
+let InvKeywords = invTable(Keywords)
+let InvSymbols = invTable(Symbols)
+
+proc `$`*(self: TokenType): string =
+  if InvKeywords.hasKey(self):
+    return fmt"'{InvKeywords[self]}'"
+  elif InvSymbols.hasKey(self): 
+    return fmt"'{InvSymbols[self]}'"
+  else:
+    return self.formatName()
