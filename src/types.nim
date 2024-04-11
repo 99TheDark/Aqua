@@ -300,12 +300,14 @@ const Operators* = [
   Nullish,
 ]
 
+proc formatName[T = Ordinal](self: T): string = 
+  self.symbolName.replacef(re"(?<=[a-z])([A-Z])", " $1")
+
 proc invTable[T = Ordinal](arr: openArray[(string, T)]): Table[T, string] =
   var table = initTable[T, string](arr.len())
   for (key, val) in arr:
     if table.hasKey(val):
-      let spaced = val.symbolName.replacef(re"(?<=[a-z])([A-Z])", " $1")
-      table[val] = spaced.toLower()
+      table[val] = val.formatName()
     else:
       table[val] = key
   
