@@ -16,9 +16,11 @@ proc expect(self: Parser, expected: TokenType): Token =
   let tok = self.eat()
   if tok.typ != expected:
     panic(fmt"Expected {expected}, but got {tok.typ} instead")
+  
+  tok
 
 proc parse*(self: Parser): Node =
-  discard self.expect(Whitespace)
+  discard
 
 proc newParser*(tokens: seq[Token]): Parser =
   Parser(tokens: tokens, idx: 0)
