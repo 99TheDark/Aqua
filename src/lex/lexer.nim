@@ -138,7 +138,7 @@ proc addGroup(self: Lexer, group: Group) =
   ))
 
 # Important public methods & procedures
-proc lex*(self: Lexer) =
+proc lex*(self: Lexer): seq[Token] =
   var capture: seq[Rune] = @[]
   var capStart = emptyLoc()
   while self.loc.idx < self.code.len():
@@ -240,6 +240,8 @@ proc lex*(self: Lexer) =
     size: 0,
     typ: Eof,
   ))
+
+  self.tokens
 
 proc filter*(self: Lexer) =
   self.tokens = self.tokens.filter(

@@ -1,5 +1,4 @@
 # Temporary error, to make better later
-
 type AquaError* = ref object of CatchableError
 
 proc panic*(msg: string) =

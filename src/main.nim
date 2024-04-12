@@ -1,14 +1,15 @@
 import pretty
-import lex/lexer, parse/parser, types
+import lex/lexer, parse/parser
 
 var src = readFile("io/script.aq")
 
 # I do find it annoying that Lexer == lexer
 var aLexer = newLexer(src)
-aLexer.lex()
+discard aLexer.lex()
 aLexer.filter()
 
 var aParser = newParser(aLexer.tokens)
-discard aParser.parse()
+let ast = aParser.parse()
 
-print aLexer.tokens
+# print aLexer.tokens
+print ast
