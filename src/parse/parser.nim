@@ -42,8 +42,9 @@ proc parseLoop(self: Parser): Node
 proc parseBreak(self: Parser): Node
 proc parseContinue(self: Parser): Node
 proc parseExpr(self: Parser): Node
-proc parseMultiplicative(self: Parser): Node
 proc parseAdditive(self: Parser): Node
+proc parseMultiplicative(self: Parser): Node
+proc parseExponentiative(self: Parser): Node
 proc parsePrimary(self: Parser): Node
 
 # More general parsing
@@ -140,7 +141,10 @@ proc parseAdditive(self: Parser): Node =
   self.parseBinaryOp(Additive, parseMultiplicative)
 
 proc parseMultiplicative(self: Parser): Node =
-  self.parseBinaryOp(Multiplicative, parsePrimary)
+  self.parseBinaryOp(Multiplicative, parseExponentiative)
+
+proc parseExponentiative(self: Parser): Node = 
+  self.parseBinaryOp(Exponentiative, parsePrimary)
 
 proc parsePrimary(self: Parser): Node =
   let tok = self.eat()
