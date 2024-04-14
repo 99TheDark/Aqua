@@ -1,5 +1,5 @@
 import ../ast/[node, kind], ../[token, types, error, todo], message, ../lex/location, ../operators
-import strformat, strutils, unicode
+import strformat, strutils, unicode, options
 
 type Parser* = ref object
   tokens: seq[Token]
@@ -65,13 +65,17 @@ proc parseBlock(self: Parser): Node =
   Node(kind: Block, left: left, right: right, stmts: stmts)
 
 proc parseList(self: Parser, node: proc(self: Parser): Node): seq[Node] =
-  var list = @[self.node()]
-  while self.tt() == Comma:
-    discard self.eat()
-    while self.tt().isLineSeperator():
+  var list: seq[Node] = @[]
+  while true:
+    if self.tt().isLineSeperator():
       discard self.eat()
+      continue
 
     list.add(self.node())
+    if self.tt() == Comma:
+      discard self.eat()
+    else:
+      break
   
   list
 
@@ -92,39 +96,61 @@ proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: proc(self
   
   lhs
 
+proc parseTypedIdent(self: Parser): Node = 
+  # TODO: Change to self.parseIdent()
+  let idenName = self.expect(Identifier)
+  let iden = Node(kind: Ident, left: idenName.left.clone(), right: idenName.right.clone(), name: idenName.val)
+  let (annot, right) = (
+    if self.tt() == Colon:
+      discard self.eat()
+      # TODO: Change to self.parseType() and use Type node
+      let annotName = self.expect(Identifier)
+      (
+        some(Node(
+          kind: Ident, 
+          left: idenName.left.clone(), 
+          right: annotName.right.clone(), 
+          name: annotName.val,
+        )),
+        annotName.right.clone()
+      )
+    else:
+      (none(Node), iden.right.clone())
+  )
+  Node(kind: TypedIdent, left: iden.left.clone(), right: right, iden: iden, annot: annot)
+
 # Statements begin the cacade, with keyword-starting statements like 'if' and 'func'
 proc parseStmt(self: Parser): Node =
-  # Switch to return (case self.tt(): ... )?
-  case self.tt():
-    of LeftBrace: return self.parseBlock()
-    of Var, Let: return self.parseDecl()
-    of If: return self.parseIfStmt()
-    of Else: panic("An else case must be directly proceeding an if statement or if-else case")
-    of For: return self.parseForLoop()
-    of While: return self.parseWhileLoop()
-    of Do: return self.parseDoWhileLoop()
-    of Loop: return self.parseLoop()
-    # TODO: Implement match
-    of Break: return self.parseBreak()
-    of Continue: return self.parseContinue()
-    # TODO: Implement func
-    # TODO: Implement return
-    # TODO: Implement class and all its subnodes
-    # TODO: Implement enum
-    # TODO: Implement generic contraints
-    # TODO: Write all the todos for the rest of the statements :P
-    else: return self.parseExpr() 
+  return (
+    case self.tt():
+      of LeftBrace: self.parseBlock()
+      of Var, Let: self.parseDecl()
+      of If: self.parseIfStmt()
+      of Else: 
+        panic("An else case must be directly proceeding an if statement or if-else case") 
+        Node()
+      of For: self.parseForLoop()
+      of While: self.parseWhileLoop()
+      of Do: self.parseDoWhileLoop()
+      of Loop: self.parseLoop()
+      # TODO: Implement match
+      of Break: self.parseBreak()
+      of Continue: self.parseContinue()
+      # TODO: Implement func
+      # TODO: Implement return
+      # TODO: Implement class and all its subnodes
+      # TODO: Implement enum
+      # TODO: Implement generic contraints
+      # TODO: Write all the todos for the rest of the statements :P
+      else: self.parseExpr() 
+  )
 
 proc parseDecl(self: Parser): Node =
   let left = self.eat().left.clone()
-  let idens = self.parseList(
-    proc(self: Parser): Node = 
-      let tok = self.expect(Identifier)
-      Node(kind: Ident, left: tok.left.clone(), right: tok.right.clone(), name: tok.val)
-  )
+  let idens = self.parseList(parseTypedIdent)
   discard self.expect(Assign)
   let vals = self.parseList(parseNode)
-  Node(kind: Decl, left: left, right: vals[^1].right, decIdens: idens, decVals: vals)
+  Node(kind: Decl, left: left, right: vals[^1].right.clone(), decIdens: idens, decVals: vals)
 
 #[
   let oper = (
@@ -181,18 +207,28 @@ proc parseExponentiative(self: Parser): Node =
 
 proc parsePrimary(self: Parser): Node =
   let tok = self.eat()
+  let left = tok.left.clone()
   return (
     case tok.typ:
       of Boolean: 
-        Node(kind: Bool, left: tok.left.clone(), right: tok.right.clone(), boolVal: tok.val == "true") 
+        # TODO: Split into seperate procedure
+        Node(kind: Bool, left: left, right: tok.right.clone(), boolVal: tok.val == "true") 
       
       of Number:
-        Node(kind: Number, left: tok.left.clone(), right: tok.right.clone(), numVal: tok.val.parseFloat())
+        # TODO: Use far better numerical parser
+        Node(kind: Number, left: left, right: tok.right.clone(), numVal: tok.val.parseFloat())
+      
+      of DoubleQuote:
+        # TODO: Include string interpolation in this
+        let str = self.expect(String)
+        let endq = self.expect(DoubleQuote)
+        Node(kind: RawString, left: left, right: endq.right.clone(), rawVal: str.val)
       
       of Quote:
+        # TODO: Split into seperate procedure
         let ch = self.expect(Char).val
         let endq = self.expect(Quote)
-        Node(kind: Char, left: tok.left.clone(), right: endq.right.clone(), charVal: ch.toRunes()[0])
+        Node(kind: Char, left: left, right: endq.right.clone(), charVal: ch.toRunes()[0])
 
       else: 
         panic(fmt"Expected a statement, got {self.tt()} instead")

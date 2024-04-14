@@ -14,6 +14,7 @@ type Node* = ref object
 
     of TypedIdent:
       iden*: Node
+      annot*: Option[Node]
 
     of Number:
       numVal*: float
