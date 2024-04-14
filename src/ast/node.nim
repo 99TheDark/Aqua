@@ -1,11 +1,6 @@
 import ../lex/location, kind, unicode, options, ../types
 
 type Node* = ref object
-  left*: Location
-  right*: Location
-  # TODO: Add typ* and inserted* when adding type inference/checking
-  # inserted*: bool = false # Inserted by the compiler?
-
   case kind*: Kind
     of Null, Continue, Todo:
       discard
@@ -46,9 +41,11 @@ type Node* = ref object
     of BinaryOp:
       lhs*: Node
       rhs*: Node
+      binop*: TokenType
     
     of UnaryOp:
       arg*: Node
+      unop*: TokenType
     
     of Spread:
       multi*: Node
@@ -88,9 +85,13 @@ type Node* = ref object
       inter*: Node
       forBody*: Node
     
-    of WhileLoop, DoWhileLoop:
-      body*: Node
-      cond*: Node
+    of WhileLoop:
+      whileCond*: Node
+      whileBody*: Node
+    
+    of DoWhileLoop:
+      doBody*: Node
+      doCond*: Node
 
     of Loop:
       loopBody*: Node
@@ -132,3 +133,8 @@ type Node* = ref object
 
     of Comment:
       msg*: string
+  
+  left*: Location
+  right*: Location
+  # TODO: Add typ* and inserted* when adding type inference/checking
+  # inserted*: bool = false # Inserted by the compiler?
