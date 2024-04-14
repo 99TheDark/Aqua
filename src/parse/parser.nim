@@ -1,5 +1,5 @@
 import ../ast/[node, kind], ../[token, types, error, todo], message, ../lex/location, ../operators
-import strformat, strutils
+import strformat, strutils, unicode
 
 type Parser* = ref object
   tokens: seq[Token]
@@ -21,9 +21,9 @@ proc expect(self: Parser, expected: TokenType): Token =
   
   tok
 
-proc expect(self: Parser, expected: openArray[TokenType]): Token = 
+proc expect(self: Parser, expected: openArray[TokenType], canTerminate: bool = false): Token = 
   let tok = self.eat()
-  if tok.typ notin expected:
+  if tok.typ notin expected and tok.typ != Eof:
     let last = expected.len() - 1
     let list = expected[0..<last].join() & " or " & $expected[last]
     panic(fmt"Expected {list}, but got {tok.typ} instead")
@@ -58,10 +58,22 @@ proc parseBlock(self: Parser): Node =
       continue
 
     stmts.add(self.parseNode())
-    discard self.expect([NewLine, Semicolon])
+    if self.tt() != RightBrace:
+      discard self.expect([NewLine, Semicolon], canTerminate=true)
 
   let right = self.expect(RightBrace).right.clone()
   Node(kind: Block, left: left, right: right, stmts: stmts)
+
+proc parseList(self: Parser, node: proc(self: Parser): Node): seq[Node] =
+  var list = @[self.node()]
+  while self.tt() == Comma:
+    discard self.eat()
+    while self.tt().isLineSeperator():
+      discard self.eat()
+
+    list.add(self.node())
+  
+  list
 
 proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: proc(self: Parser): Node): Node =
   var lhs = self.next()
@@ -104,7 +116,24 @@ proc parseStmt(self: Parser): Node =
     else: return self.parseExpr() 
 
 proc parseDecl(self: Parser): Node =
-  todo("declaration")
+  let left = self.eat().left.clone()
+  let idens = self.parseList(
+    proc(self: Parser): Node = 
+      let tok = self.expect(Identifier)
+      Node(kind: Ident, left: tok.left.clone(), right: tok.right.clone(), name: tok.val)
+  )
+  discard self.expect(Assign)
+  let vals = self.parseList(parseNode)
+  Node(kind: Decl, left: left, right: vals[^1].right, decIdens: idens, decVals: vals)
+
+#[
+  let oper = (
+    if self.tt() in BinaryOperators: 
+      some(self.eat()) 
+    else: 
+      none(Token)
+  )
+]#
 
 proc parseIfStmt(self: Parser): Node =
   todo("if statement")
@@ -159,6 +188,11 @@ proc parsePrimary(self: Parser): Node =
       
       of Number:
         Node(kind: Number, left: tok.left.clone(), right: tok.right.clone(), numVal: tok.val.parseFloat())
+      
+      of Quote:
+        let ch = self.expect(Char).val
+        let endq = self.expect(Quote)
+        Node(kind: Char, left: tok.left.clone(), right: endq.right.clone(), charVal: ch.toRunes()[0])
 
       else: 
         panic(fmt"Expected a statement, got {self.tt()} instead")

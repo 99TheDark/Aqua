@@ -1,9 +1,3 @@
-loop {
-    do {
-        
-    } while true
-
-    while 3 + 5 ^ 7.6 * 2 {
-        
-    }
+loop { 
+    let ch1, ch2 = 'f'
 }
