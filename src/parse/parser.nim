@@ -32,6 +32,7 @@ proc expect(self: Parser, expected: openArray[TokenType]): Token =
 
 # List of all the procedures before they are defined
 proc parseNode(self: Parser): Node
+proc parseStmt(self: Parser): Node
 proc parseDecl(self: Parser): Node
 proc parseIfStmt(self: Parser): Node
 proc parseForLoop(self: Parser): Node
@@ -40,6 +41,9 @@ proc parseDoWhileLoop(self: Parser): Node
 proc parseLoop(self: Parser): Node
 proc parseBreak(self: Parser): Node
 proc parseContinue(self: Parser): Node
+proc parseExpr(self: Parser): Node
+proc parseBinaryOp(self: Parser): Node
+proc parsePrimary(self: Parser): Node
 
 proc parseBlock(self: Parser): Node =
   let left = self.expect(LeftBrace).left.clone()
@@ -76,7 +80,7 @@ proc parseStmt(self: Parser): Node =
     # TODO: Implement enum
     # TODO: Implement generic contraints
     # TODO: Write all the todos for the rest of the statements :P
-    else: panic(fmt"Expected a statement, got {self.tt()} instead") # TODO: Make this fallback to parseExpr
+    else: return self.parseExpr() 
 
 proc parseDecl(self: Parser): Node =
   todo("declaration")
@@ -103,6 +107,16 @@ proc parseBreak(self: Parser): Node =
 
 proc parseContinue(self: Parser): Node =
   todo("continue")
+
+# Expressions cascade
+proc parseExpr(self: Parser): Node =
+  self.parseBinaryOp()
+
+proc parseBinaryOp(self: Parser): Node =
+  todo("binary operator")
+
+proc parsePrimary(self: Parser): Node =
+  panic(fmt"Expected a statement, got {self.tt()} instead")
 
 # A large cascade of parsing
 proc parseNode(self: Parser): Node =

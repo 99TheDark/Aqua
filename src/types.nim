@@ -268,38 +268,6 @@ const Symbols* = {
   "?": Optional,
 }
 
-const Operators* = [
-  Addition,
-  Subtraction,
-  Multiplication,
-  Division,
-  Exponentiation,
-  Modulo,
-  And,
-  Or,
-  Nand,
-  Nor,
-  Xand,
-  Xor,
-  Not,
-  RightShift,
-  LeftShift,
-  ZeroFillRightShift,
-  CountLeadingZeroes,
-  CountTrailingZeroes,
-  Equal,
-  NotEqual,
-  GreaterThan,
-  LessThan,
-  GreaterThanOrEqual,
-  LessThanOrEqual,
-  WrappedAddition,
-  WrappedSubtraction,
-  WrappedMultiplication,
-  WrappedLeftShift,
-  Nullish,
-]
-
 proc isLineSeperator*(self: TokenType): bool = 
   self == NewLine or self == Semicolon
 
