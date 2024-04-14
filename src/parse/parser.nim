@@ -124,7 +124,7 @@ proc parseStmt(self: Parser): Node =
   return (
     case self.tt():
       of LeftBrace: self.parseBlock()
-      of Var, Let: self.parseDecl()
+      of Let, Var: self.parseDecl()
       of If: self.parseIfStmt()
       of Else: 
         panic("An else case must be directly proceeding an if statement or if-else case") 
@@ -146,11 +146,18 @@ proc parseStmt(self: Parser): Node =
   )
 
 proc parseDecl(self: Parser): Node =
-  let left = self.eat().left.clone()
+  let kind = self.eat()
   let idens = self.parseList(parseTypedIdent)
   discard self.expect(Assign)
   let vals = self.parseList(parseNode)
-  Node(kind: Decl, left: left, right: vals[^1].right.clone(), decIdens: idens, decVals: vals)
+  Node(
+    kind: Decl, 
+    left: kind.left.clone(), 
+    right: vals[^1].right.clone(), 
+    decKind: (if kind.typ == Var: VarDecl else: LetDecl),
+    decIdens: idens, 
+    decVals: vals,
+  )
 
 #[
   let oper = (
