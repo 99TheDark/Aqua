@@ -1,3 +1,9 @@
 loop {
-    while 3 + 5 * 2 {}
+    do {
+        
+    } while true
+
+    while 3 + 5 ^ 7.6 * 2 {
+        
+    }
 }

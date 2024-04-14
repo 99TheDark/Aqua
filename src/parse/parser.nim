@@ -114,13 +114,17 @@ proc parseForLoop(self: Parser): Node =
 
 proc parseWhileLoop(self: Parser): Node =
   # TODO: Implement a shorthand for self.eat().left.clone() and self.eat().right.clone()
-  let start = self.eat().left.clone()
+  let left = self.eat().left.clone()
   let cond = self.parseExpr()
   let body = self.parseBlock()
-  Node(kind: WhileLoop, left: start, right: body.right.clone(), whileCond: cond, whileBody: body)
+  Node(kind: WhileLoop, left: left, right: body.right.clone(), whileCond: cond, whileBody: body)
 
 proc parseDoWhileLoop(self: Parser): Node =
-  todo("do while loop")
+  let left = self.eat().left.clone()
+  let body = self.parseBlock()
+  discard self.expect(While)
+  let cond = self.parseExpr()
+  Node(kind: DoWhileLoop, left: left, right: cond.right.clone(), doBody: body, doCond: cond)
 
 proc parseLoop(self: Parser): Node =
   let left = self.eat().left.clone()
