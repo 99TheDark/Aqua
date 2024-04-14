@@ -1,5 +1,4 @@
-if true {
-    
+loop {
+    {}
+    {}
 }
-
-let x = 5

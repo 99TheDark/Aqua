@@ -1,4 +1,4 @@
-import ../ast/[node, iden, control], ../[token, types, error, todo]
+import ../ast/[node, kind], ../[token, types, error, todo], message, ../lex/location
 import strformat
 
 type Parser* = ref object
@@ -21,33 +21,45 @@ proc expect(self: Parser, expected: TokenType): Token =
   
   tok
 
-proc parseDecl(self: Parser): Decl =
-  todo("declaration")
+proc expect(self: Parser, expected: openArray[TokenType]): Token = 
+  let tok = self.eat()
+  if tok.typ notin expected:
+    let last = expected.len() - 1
+    let list = expected[0..<last].join() & " or " & $expected[last]
+    panic(fmt"Expected {list}, but got {tok.typ} instead")
+  
+  tok
 
-proc parseIfStmt(self: Parser): IfStmt =
-  todo("if statement")
+# List of all the procedures before they are defined
+proc parseNode(self: Parser): Node
+proc parseDecl(self: Parser): Node
+proc parseIfStmt(self: Parser): Node
+proc parseForLoop(self: Parser): Node
+proc parseWhileLoop(self: Parser): Node
+proc parseDoWhileLoop(self: Parser): Node
+proc parseLoop(self: Parser): Node
+proc parseBreak(self: Parser): Node
+proc parseContinue(self: Parser): Node
 
-proc parseForLoop(self: Parser): ForLoop =
-  todo("for loop")
+proc parseBlock(self: Parser): Node =
+  let left = self.expect(LeftBrace).left.clone()
 
-proc parseWhileLoop(self: Parser): WhileLoop =
-  todo("while loop")
+  var stmts: seq[Node] = @[]
+  while self.tt() != RightBrace:
+    if self.tt().isLineSeperator():
+      discard self.eat()
+      continue
 
-proc parseDoWhileLoop(self: Parser): DoWhileLoop =
-  todo("do while loop")
+    stmts.add(self.parseNode())
+    discard self.expect([NewLine, Semicolon])
 
-proc parseLoop(self: Parser): Loop =
-  todo("loop")
+  let right = self.expect(RightBrace).right.clone()
+  Node(kind: Block, left: left, right: right, stmts: stmts)
 
-proc parseBreak(self: Parser): Break =
-  todo("break")
-
-proc parseContinue(self: Parser): Continue =
-  todo("continue")
-
-# It's really annoying that procs have to be defined top to bottom
+# Statements begin the cacade, with keyword-starting statements like 'if' and 'func'
 proc parseStmt(self: Parser): Node =
   case self.tt():
+    of LeftBrace: return self.parseBlock()
     of Var, Let: return self.parseDecl()
     of If: return self.parseIfStmt()
     of Else: panic("An else case must be directly proceeding an if statement or if-else case")
@@ -66,7 +78,33 @@ proc parseStmt(self: Parser): Node =
     # TODO: Write all the todos for the rest of the statements :P
     else: panic(fmt"Expected a statement, got {self.tt()} instead") # TODO: Make this fallback to parseExpr
 
-# A large cascade of parsing, starting with a ton of statements that start with keywords like 'if' and 'func'
+proc parseDecl(self: Parser): Node =
+  todo("declaration")
+
+proc parseIfStmt(self: Parser): Node =
+  todo("if statement")
+
+proc parseForLoop(self: Parser): Node =
+  todo("for loop")
+
+proc parseWhileLoop(self: Parser): Node =
+  todo("while loop")
+
+proc parseDoWhileLoop(self: Parser): Node =
+  todo("do while loop")
+
+proc parseLoop(self: Parser): Node =
+  let left = self.eat().left.clone()
+  let body = self.parseBlock()
+  Node(kind: Loop, left: left, right: body.right.clone(), loopBody: body)
+
+proc parseBreak(self: Parser): Node =
+  todo("break")
+
+proc parseContinue(self: Parser): Node =
+  todo("continue")
+
+# A large cascade of parsing
 proc parseNode(self: Parser): Node =
   self.parseStmt()
 
