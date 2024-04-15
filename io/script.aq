@@ -1,6 +1,14 @@
+// Single-line comment!
 for username, website in login {
     
 }
+
+/*
+Some multiline comment...
+
+/* with a multiline comment inside of that! */
+Woah.
+*/ 
 
 if true {
     let a: bool, b: float, c: string = true, 2.7 - 1, "Hello, world!"

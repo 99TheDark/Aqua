@@ -33,6 +33,29 @@ proc expect(self: Parser, expected: openArray[TokenType], canTerminate: bool = f
   
   tok
 
+proc ignore(self: Parser): bool =
+  let typ = self.tt()
+  if typ.isLineSeperator():
+    discard self.eat()
+    return true
+
+  if typ == CommentStart:
+    discard self.eat()
+    discard self.expect(Comment)
+    return true
+
+  if typ == MultiCommentStart:
+    discard self.eat()
+    var brace = 1
+    while brace != 0:
+      case self.eat().typ
+        of MultiCommentStart: brace += 1
+        of MultiCommentEnd: brace -= 1
+        else: discard
+    return true
+  
+  false
+
 # List of all the procedures before they are defined
 proc parseNode(self: Parser): Node
 proc parseStmt(self: Parser): Node
@@ -56,9 +79,7 @@ proc parseBlock(self: Parser): Node =
 
   var stmts: seq[Node] = @[]
   while self.tt() != RightBrace:
-    if self.tt().isLineSeperator():
-      discard self.eat()
-      continue
+    if self.ignore(): continue
 
     stmts.add(self.parseNode())
     if self.tt() != RightBrace:
@@ -287,9 +308,7 @@ proc parseNode(self: Parser): Node =
 proc parse*(self: Parser): seq[Node] =
   var nodes: seq[Node] = @[]
   while self.tt() != Eof:
-    if self.tt().isLineSeperator():
-      discard self.eat()
-      continue
+    if self.ignore(): continue
 
     nodes.add(self.parseNode())
 
