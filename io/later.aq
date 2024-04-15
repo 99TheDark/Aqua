@@ -1,3 +1,9 @@
+import info.login
+
+for username, website in login {
+    println("On ${website}, I use the username ${username}.")
+}
+
 var interpolated = "$(3 + (7 - 2)) == 10, $(false | true)"
 
 let character = 'π'

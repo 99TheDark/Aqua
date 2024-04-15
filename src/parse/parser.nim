@@ -283,9 +283,17 @@ proc parsePrimary(self: Parser): Node =
 proc parseNode(self: Parser): Node =
   self.parseStmt()
 
-proc parse*(self: Parser): Node =
-  # TODO: Make this parse more than one node
-  self.parseNode()
+# TODO: Change to return a Program object rather than just a seq[Node]
+proc parse*(self: Parser): seq[Node] =
+  var nodes: seq[Node] = @[]
+  while self.tt() != Eof:
+    if self.tt().isLineSeperator():
+      discard self.eat()
+      continue
+
+    nodes.add(self.parseNode())
+
+  nodes
 
 proc newParser*(tokens: seq[Token]): Parser =
   Parser(tokens: tokens, idx: 0)
