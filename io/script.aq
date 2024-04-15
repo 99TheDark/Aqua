@@ -1,5 +1,7 @@
-loop {
+if true {
     let a: bool, b: float, c: string = true, 2.7 - 1, "Hello, world!"
     let ch1, ch2 = 'f'
     var thing: uint = 50
-}
+} else if false {
+    var t = 2, 5
+} else { let b = 3 }

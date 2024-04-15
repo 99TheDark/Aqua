@@ -169,7 +169,28 @@ proc parseDecl(self: Parser): Node =
 ]#
 
 proc parseIfStmt(self: Parser): Node =
-  todo("if statement")
+  let left = self.eat().left.clone()
+  let test = self.parseExpr()
+  let body = self.parseBlock()
+  
+  let (right, alt) = (
+    if self.tt() == Else:
+      let left = self.eat().left.clone()
+      let alt = (if self.tt() == If: self.parseIfStmt() else: self.parseBlock())
+      alt.left = left
+      (alt.right.clone(), some(alt))
+    else:
+      (body.right.clone(), none(Node))
+  )
+
+  return Node(
+    kind: IfStmt, 
+    left: left, 
+    right: right, 
+    test: test, 
+    then: body,
+    alt: alt
+  )
 
 proc parseForLoop(self: Parser): Node =
   todo("for loop")
