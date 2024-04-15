@@ -83,8 +83,8 @@ type Node* = ref object
       alt*: Option[Node]
 
     of ForLoop:
-      indexer*: seq[Node]
-      inter*: Node
+      indexers*: seq[Node]
+      iter*: Node
       forBody*: Node
     
     of WhileLoop:

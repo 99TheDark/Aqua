@@ -14,6 +14,9 @@ proc eat(self: Parser): Token =
   self.idx += 1
   tok
 
+proc start(self: Parser): Location =
+  self.eat().left.clone()
+
 proc expect(self: Parser, expected: TokenType): Token = 
   let tok = self.eat()
   if tok.typ != expected:
@@ -96,10 +99,12 @@ proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: proc(self
   
   lhs
 
+proc parseIdent(self: Parser): Node =
+  let tok = self.expect(Identifier)
+  Node(kind: Ident, left: tok.left.clone(), right: tok.right.clone(), name: tok.val)
+
 proc parseTypedIdent(self: Parser): Node = 
-  # TODO: Change to self.parseIdent()
-  let idenName = self.expect(Identifier)
-  let iden = Node(kind: Ident, left: idenName.left.clone(), right: idenName.right.clone(), name: idenName.val)
+  let iden = self.parseIdent()
   let (annot, right) = (
     if self.tt() == Colon:
       discard self.eat()
@@ -108,7 +113,7 @@ proc parseTypedIdent(self: Parser): Node =
       (
         some(Node(
           kind: Ident, 
-          left: idenName.left.clone(), 
+          left: iden.left.clone(), 
           right: annotName.right.clone(), 
           name: annotName.val,
         )),
@@ -169,13 +174,13 @@ proc parseDecl(self: Parser): Node =
 ]#
 
 proc parseIfStmt(self: Parser): Node =
-  let left = self.eat().left.clone()
+  let left = self.start()
   let test = self.parseExpr()
   let body = self.parseBlock()
   
   let (right, alt) = (
     if self.tt() == Else:
-      let left = self.eat().left.clone()
+      let left = self.start()
       let alt = (if self.tt() == If: self.parseIfStmt() else: self.parseBlock())
       alt.left = left
       (alt.right.clone(), some(alt))
@@ -193,24 +198,35 @@ proc parseIfStmt(self: Parser): Node =
   )
 
 proc parseForLoop(self: Parser): Node =
-  todo("for loop")
+  let left = self.start()
+  let indexers = self.parseList(parseIdent)
+  discard self.expect(In)
+  let iter = self.parseIdent()
+  let body = self.parseBlock()
+  Node(
+    kind: ForLoop, 
+    left: left, 
+    right: body.right.clone(), 
+    indexers: indexers, 
+    iter: iter,
+    forBody: body,
+  )
 
 proc parseWhileLoop(self: Parser): Node =
-  # TODO: Implement a shorthand for self.eat().left.clone() and self.eat().right.clone()
-  let left = self.eat().left.clone()
+  let left = self.start()
   let cond = self.parseExpr()
   let body = self.parseBlock()
   Node(kind: WhileLoop, left: left, right: body.right.clone(), whileCond: cond, whileBody: body)
 
 proc parseDoWhileLoop(self: Parser): Node =
-  let left = self.eat().left.clone()
+  let left = self.start()
   let body = self.parseBlock()
   discard self.expect(While)
   let cond = self.parseExpr()
   Node(kind: DoWhileLoop, left: left, right: cond.right.clone(), doBody: body, doCond: cond)
 
 proc parseLoop(self: Parser): Node =
-  let left = self.eat().left.clone()
+  let left = self.start()
   let body = self.parseBlock()
   Node(kind: Loop, left: left, right: body.right.clone(), loopBody: body)
 
