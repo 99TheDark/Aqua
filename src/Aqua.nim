@@ -1,5 +1,5 @@
 import pretty
-import lex/lexer, parse/parser, error
+import lex/lexer, parse/parser
 
 when isMainModule:
   var src = readFile("io/script.aq")
