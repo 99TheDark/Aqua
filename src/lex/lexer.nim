@@ -7,7 +7,7 @@ proc top[T](self: seq[T]): T = self[self.len() - 1]
 
 # Lexer
 type Lexer* = ref object
-  code: seq[Rune]
+  code*: seq[Rune]
   loc: Location
   groupStack: seq[Group]
   numeric: bool

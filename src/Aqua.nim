@@ -1,5 +1,16 @@
-# This is just an example to get you started. A typical binary package
-# uses this file as the main entry point of the application.
+import pretty
+import lex/lexer, parse/parser, error
 
 when isMainModule:
-  echo("Hello, World!")
+  var src = readFile("io/script.aq")
+
+  # I do find it annoying that Lexer == lexer
+  var aLexer = newLexer(src)
+  discard aLexer.lex()
+  aLexer.filter()
+
+  var aParser = newParser(aLexer.tokens)
+  let ast = aParser.parse()
+
+  # print aLexer.tokens
+  print ast
