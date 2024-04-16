@@ -71,6 +71,7 @@ proc parseExpr(self: Parser): Node
 proc parseAdditive(self: Parser): Node
 proc parseMultiplicative(self: Parser): Node
 proc parseExponentiative(self: Parser): Node
+proc parseRange(self: Parser): Node
 proc parsePrimary(self: Parser): Node
 
 # More general parsing
@@ -222,7 +223,7 @@ proc parseForLoop(self: Parser): Node =
   let left = self.start()
   let indexers = self.parseList(parseIdent)
   discard self.expect(In)
-  let iter = self.parseIdent()
+  let iter = self.parseExpr()
   let body = self.parseBlock()
   Node(
     kind: ForLoop, 
@@ -268,32 +269,61 @@ proc parseMultiplicative(self: Parser): Node =
   self.parseBinaryOp(Multiplicative, parseExponentiative)
 
 proc parseExponentiative(self: Parser): Node = 
-  self.parseBinaryOp(Exponentiative, parsePrimary)
+  self.parseBinaryOp(Exponentiative, parseRange)
+
+proc parseRange(self: Parser): Node =  
+  let left = self.parsePrimary()
+  let (isRange, inclusive) = (
+    case self.tt()
+      of Range: (true, false)
+      of RangeInclusive: (true, true)
+      else: (false, false)
+  )
+  if isRange:
+    discard self.eat()
+    let right = self.parsePrimary()
+    return Node(
+      kind: Range, 
+      left: left.left.clone(),
+      right: right.right.clone(),
+      rangeStart: left, 
+      rangeEnd: right, 
+      inclusive: inclusive,
+    )
+
+  left
 
 proc parsePrimary(self: Parser): Node =
-  let tok = self.eat()
+  let tok = self.at()
   let left = tok.left.clone()
   return (
     case tok.typ:
       of Boolean: 
         # TODO: Split into seperate procedure
+        discard self.eat()
         Node(kind: Bool, left: left, right: tok.right.clone(), boolVal: tok.val == "true") 
       
       of Number:
         # TODO: Use far better numerical parser
+        discard self.eat()
         Node(kind: Number, left: left, right: tok.right.clone(), numVal: tok.val.parseFloat())
       
       of DoubleQuote:
         # TODO: Include string interpolation in this
+        discard self.eat()
         let str = self.expect(String)
         let endq = self.expect(DoubleQuote)
         Node(kind: RawString, left: left, right: endq.right.clone(), rawVal: str.val)
       
       of Quote:
         # TODO: Split into seperate procedure
+        discard self.eat()
         let ch = self.expect(Char).val
         let endq = self.expect(Quote)
         Node(kind: Char, left: left, right: endq.right.clone(), charVal: ch.toRunes()[0])
+      
+      of Identifier:
+        self.parseIdent()
 
       else: 
         panic(fmt"Expected a statement, got {self.tt()} instead")

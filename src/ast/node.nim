@@ -33,6 +33,11 @@ type Node* = ref object
 
     of Char:
       charVal*: Rune
+    
+    of Range:
+      rangeStart*: Node
+      rangeEnd*: Node
+      inclusive*: bool
 
     of Array:
       arrList*: seq[Node]

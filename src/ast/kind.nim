@@ -8,6 +8,7 @@ type
     String
     RawString
     Char
+    Range
     Null
     Array
     Tuple
