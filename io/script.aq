@@ -6,7 +6,7 @@ for username, website in login {
 'outer:
 for i in 0..10 {
     for j in 5..=12 {
-        add(i, j)
+        add(i, j << 2 * 4)
     }
 }
 
@@ -17,7 +17,7 @@ Some multiline comment...
 Woah.
 */ 
 
-if true {
+if true ^| false {
     let a: bool, b: float, c: string = true, 2.7 - 1, "Hello, world!"
     let ch1, ch2 = 'f'
     var thing: uint = 50

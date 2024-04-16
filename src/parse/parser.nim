@@ -80,6 +80,8 @@ proc parseLoop(self: Parser): Node
 proc parseBreak(self: Parser): Node
 proc parseContinue(self: Parser): Node
 proc parseExpr(self: Parser): Node
+proc parseLogical(self: Parser): Node
+proc parseShifting(self: Parser): Node
 proc parseAdditive(self: Parser): Node
 proc parseMultiplicative(self: Parser): Node
 proc parseExponentiative(self: Parser): Node
@@ -279,7 +281,7 @@ proc parseLookaheadStmt(self: Parser): Node =
 
     while self.tt().isLineSeperator():
       discard self.eat()
-    
+
     let labeled = self.parseStmt()
     return Node(
       kind: Label,
@@ -293,7 +295,13 @@ proc parseLookaheadStmt(self: Parser): Node =
 
 # Expressions cascade
 proc parseExpr(self: Parser): Node =
-  self.parseAdditive()
+  self.parseLogical()
+
+proc parseLogical(self: Parser): Node =
+  self.parseBinaryOp(Logical, parseShifting)
+
+proc parseShifting(self: Parser): Node =
+  self.parseBinaryOp(Shifting, parseAdditive)
 
 proc parseAdditive(self: Parser): Node =
   self.parseBinaryOp(Additive, parseMultiplicative)
