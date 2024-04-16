@@ -14,6 +14,17 @@ proc eat(self: Parser): Token =
   self.idx += 1
   tok
 
+proc pattern(self: Parser, next: openArray[TokenType]): bool =
+  for idx, wanted in next:
+    let i = self.idx + idx
+    if i >= self.tokens.len():
+      return false
+
+    if wanted != self.tokens[i].typ:
+      return false
+  
+  true
+
 proc start(self: Parser): Location =
   self.eat().left.clone()
 
@@ -59,6 +70,7 @@ proc ignore(self: Parser): bool =
 # List of all the procedures before they are defined
 proc parseNode(self: Parser): Node
 proc parseStmt(self: Parser): Node
+proc parseLookaheadStmt(self: Parser): Node
 proc parseDecl(self: Parser): Node
 proc parseIfStmt(self: Parser): Node
 proc parseForLoop(self: Parser): Node
@@ -170,7 +182,7 @@ proc parseStmt(self: Parser): Node =
       # TODO: Implement enum
       # TODO: Implement generic contraints
       # TODO: Write all the todos for the rest of the statements :P
-      else: self.parseExpr() 
+      else: self.parseLookaheadStmt()
   )
 
 proc parseDecl(self: Parser): Node =
@@ -258,6 +270,26 @@ proc parseBreak(self: Parser): Node =
 
 proc parseContinue(self: Parser): Node =
   todo("continue")
+
+proc parseLookaheadStmt(self: Parser): Node =
+  if self.pattern([Quote, Identifier, Colon]):
+    let left = self.start()
+    let label = self.parseIdent()
+    discard self.eat()
+
+    while self.tt().isLineSeperator():
+      discard self.eat()
+    
+    let labeled = self.parseStmt()
+    return Node(
+      kind: Label,
+      left: left,
+      right: labeled.right.clone(),
+      label: label,
+      labeled: labeled,
+    )
+  
+  self.parseExpr()
 
 # Expressions cascade
 proc parseExpr(self: Parser): Node =

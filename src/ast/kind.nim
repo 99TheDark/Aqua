@@ -22,6 +22,7 @@ type
     SafeAccess
     ConstAccess
     Index
+    Label
     Block
     IfStmt
     ForLoop

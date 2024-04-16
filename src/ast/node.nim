@@ -79,6 +79,10 @@ type Node* = ref object
       indexable*: Node
       idx*: Node
     
+    of Label:
+      label*: Node
+      labeled*: Node
+    
     of Block:
       stmts*: seq[Node]
 
@@ -128,7 +132,7 @@ type Node* = ref object
       claim*: Node
     
     of Test:
-      label*: Node
+      testName*: Node
     
     of Cast:
       to*: Node
