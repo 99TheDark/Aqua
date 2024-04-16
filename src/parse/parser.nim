@@ -72,6 +72,7 @@ proc parseAdditive(self: Parser): Node
 proc parseMultiplicative(self: Parser): Node
 proc parseExponentiative(self: Parser): Node
 proc parseRange(self: Parser): Node
+proc parseFuncCall(self: Parser): Node
 proc parsePrimary(self: Parser): Node
 
 # More general parsing
@@ -272,7 +273,7 @@ proc parseExponentiative(self: Parser): Node =
   self.parseBinaryOp(Exponentiative, parseRange)
 
 proc parseRange(self: Parser): Node =  
-  let left = self.parsePrimary()
+  let left = self.parseFuncCall()
   let (isRange, inclusive) = (
     case self.tt()
       of Range: (true, false)
@@ -281,7 +282,7 @@ proc parseRange(self: Parser): Node =
   )
   if isRange:
     discard self.eat()
-    let right = self.parsePrimary()
+    let right = self.parseFuncCall()
     return Node(
       kind: Range, 
       left: left.left.clone(),
@@ -291,6 +292,21 @@ proc parseRange(self: Parser): Node =
       inclusive: inclusive,
     )
 
+  left
+
+proc parseFuncCall(self: Parser): Node = 
+  let left = self.parsePrimary()
+  if self.tt() == LeftParen:
+    discard self.eat()
+    let args = self.parseList(parseNode)
+    let right = self.expect(RightParen).right.clone()
+    return Node(
+      kind: FuncCall,
+      left: left.left.clone(),
+      right: right,
+      callee: left,
+      args: args,
+    )
   left
 
 proc parsePrimary(self: Parser): Node =
