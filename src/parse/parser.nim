@@ -80,6 +80,7 @@ proc parseLoop(self: Parser): Node
 proc parseBreak(self: Parser): Node
 proc parseContinue(self: Parser): Node
 proc parseExpr(self: Parser): Node
+proc parseComparative(self: Parser): Node
 proc parseLogical(self: Parser): Node
 proc parseShifting(self: Parser): Node
 proc parseAdditive(self: Parser): Node
@@ -271,7 +272,8 @@ proc parseBreak(self: Parser): Node =
   todo("break")
 
 proc parseContinue(self: Parser): Node =
-  todo("continue")
+  let tok = self.eat()
+  Node(kind: Continue, left: tok.left.clone(), right: tok.right.clone())
 
 proc parseLookaheadStmt(self: Parser): Node =
   if self.pattern([Quote, Identifier, Colon]):
@@ -295,7 +297,10 @@ proc parseLookaheadStmt(self: Parser): Node =
 
 # Expressions cascade
 proc parseExpr(self: Parser): Node =
-  self.parseLogical()
+  self.parseComparative()
+
+proc parseComparative(self: Parser): Node = 
+  self.parseBinaryOp(Comparative, parseLogical)
 
 proc parseLogical(self: Parser): Node =
   self.parseBinaryOp(Logical, parseShifting)
