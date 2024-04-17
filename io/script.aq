@@ -29,3 +29,5 @@ if true ^| false {
 } else if false {
     var t = 2, 5
 } else { let b = 3 }
+
+let optional: string? = null

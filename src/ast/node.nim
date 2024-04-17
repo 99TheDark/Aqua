@@ -9,9 +9,8 @@ type Node* = ref object
       name*: string
 
     of Type:
-      # Instead of base, use union*: seq[Node], and make this variant SubType
       base*: Node
-      option*: bool
+      optional*: bool
 
     of TypedIdent:
       iden*: Node

@@ -141,22 +141,22 @@ proc parseIdent(self: Parser): Node =
   let tok = self.expect(Identifier)
   Node(kind: Ident, left: tok.left.clone(), right: tok.right.clone(), name: tok.val)
 
+proc parseType(self: Parser): Node =
+  let base = self.parseIdent()
+  let left = base.left.clone()
+  if self.tt() == Optional:
+    let opt = self.eat()
+    Node(kind: Type, left: left, right: opt.right.clone(), base: base, optional: true)
+  else:
+    Node(kind: Type, left: left, right: base.right.clone(), base: base, optional: false)
+
 proc parseTypedIdent(self: Parser): Node = 
   let iden = self.parseIdent()
   let (annot, right) = (
     if self.tt() == Colon:
       discard self.eat()
-      # TODO: Change to self.parseType() and use Type node
-      let annotName = self.expect(Identifier)
-      (
-        some(Node(
-          kind: Ident, 
-          left: iden.left.clone(), 
-          right: annotName.right.clone(), 
-          name: annotName.val,
-        )),
-        annotName.right.clone()
-      )
+      let typ = self.parseType()
+      (some(typ), typ.right.clone())
     else:
       (none(Node), iden.right.clone())
   )
@@ -365,6 +365,10 @@ proc parsePrimary(self: Parser): Node =
         # TODO: Split into seperate procedure
         discard self.eat()
         Node(kind: Bool, left: left, right: tok.right.clone(), boolVal: tok.val == "true") 
+      
+      of Null:
+        discard self.eat()
+        Node(kind: Null, left: left, right: tok.right.clone())
       
       of Number:
         # TODO: Use far better numerical parser
