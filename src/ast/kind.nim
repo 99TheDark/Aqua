@@ -22,7 +22,7 @@ type
     SafeAccess
     ConstAccess
     Index
-    Label
+    ControlLabel
     Block
     IfStmt
     ForLoop
@@ -32,6 +32,7 @@ type
     # TODO: Add Match statement
     Break
     Continue
+    Label
     Return
     Defer
     Yield

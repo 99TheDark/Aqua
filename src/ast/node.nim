@@ -79,9 +79,9 @@ type Node* = ref object
       indexable*: Node
       idx*: Node
     
-    of Label:
-      label*: Node
-      labeled*: Node
+    of ControlLabel:
+      ctrlLabel*: Node
+      ctrlStmt*: Node
     
     of Block:
       stmts*: seq[Node]
@@ -108,7 +108,10 @@ type Node* = ref object
       loopBody*: Node
     
     of Break:
-      breakTo*: Node
+      breakArg*: Node
+    
+    of Label:
+      label*: Node
     
     of Return:
       retVal*: Node

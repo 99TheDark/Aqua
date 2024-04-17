@@ -1,4 +1,4 @@
-import ../ast/[node, kind], ../[token, types, error, todo], message, ../lex/location, ../operators
+import ../ast/[node, kind], ../[token, types, error], message, ../lex/location, ../operators
 import strformat, strutils, unicode, options
 
 type Parser* = ref object
@@ -269,7 +269,9 @@ proc parseLoop(self: Parser): Node =
   Node(kind: Loop, left: left, right: body.right.clone(), loopBody: body)
 
 proc parseBreak(self: Parser): Node =
-  todo("break")
+  let left = self.start()
+  let arg = self.parseNode()
+  Node(kind: Break, left: left, right: arg.right.clone(), breakArg: arg)
 
 proc parseContinue(self: Parser): Node =
   let tok = self.eat()
@@ -286,11 +288,11 @@ proc parseLookaheadStmt(self: Parser): Node =
 
     let labeled = self.parseStmt()
     return Node(
-      kind: Label,
+      kind: ControlLabel,
       left: left,
       right: labeled.right.clone(),
-      label: label,
-      labeled: labeled,
+      ctrlLabel: label,
+      ctrlStmt: labeled,
     )
   
   self.parseExpr()
@@ -379,9 +381,13 @@ proc parsePrimary(self: Parser): Node =
       of Quote:
         # TODO: Split into seperate procedure
         discard self.eat()
-        let ch = self.expect(Char).val
-        let endq = self.expect(Quote)
-        Node(kind: Char, left: left, right: endq.right.clone(), charVal: ch.toRunes()[0])
+        if self.tt() == Char:
+          let ch = self.eat().val
+          let endq = self.expect(Quote)
+          Node(kind: Char, left: left, right: endq.right.clone(), charVal: ch.toRunes()[0])
+        else:
+          let label = self.parseIdent()
+          Node(kind: Label, left: left, right: label.right.clone(), label: label)
       
       of Identifier:
         self.parseIdent()
