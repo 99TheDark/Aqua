@@ -1,5 +1,5 @@
 import ../token, location, ../types, group, number, ../error, ../parse/message
-import unicode, sequtils, strformat, pretty
+import unicode, sequtils, strformat
 import strutils except Whitespace
 
 # Extend seq[T] to give last/top item
@@ -112,7 +112,7 @@ proc symbol(self: Lexer): (bool, Token) =
 
 proc group(self: Lexer) =
   # Stop index out of bounds errors
-  if self.tokens.len() == 0 or self.groupStack.len() != 0:
+  if self.tokens.len() == 0 or not self.lexNorm():
     return
 
   let last = self.tokens.top()
@@ -129,8 +129,6 @@ proc addGroup(self: Lexer, group: Group) =
   if left.idx == right.idx:
     return
 
-  echo group
-
   self.tokens.add(Token(
     val: $self.code[left.idx..<right.idx],
     left: left,
@@ -145,7 +143,7 @@ proc lex*(self: Lexer): seq[Token] =
   var capStart = emptyLoc()
   while self.loc.idx < self.code.len():
     let (isSymbol, symbol) = self.symbol()
-    if self.lexNorm:
+    if self.lexNorm():
       if not self.numeric and capture.len() == 0 and self.at().isNumeric():
         self.numeric = true
         continue
@@ -177,13 +175,14 @@ proc lex*(self: Lexer): seq[Token] =
             ))
           else:
             self.loc.prev()
-
           continue
 
         # Don't try to access and compute nothing
         if self.groupStack.len() != 0:
           let group = self.groupStack.top()
           if group.typ == InterpolateGroup:
+            self.group()
+
             if symbol.typ == LeftParen:
               self.parenCount += 1
             elif symbol.typ == RightParen:
@@ -240,7 +239,6 @@ proc lex*(self: Lexer): seq[Token] =
       let group = self.groupStack[0]
       panic(fmt"Unclosed {group.name} expected ending {group.right}")
     else:
-      print self.groupStack
       let list = self.groupStack.map(proc(g: Group): TokenType = g.right).list("and")
       panic(fmt"{list}")
 

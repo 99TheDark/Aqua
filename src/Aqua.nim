@@ -11,8 +11,8 @@ when isMainModule:
 
   print aLexer.tokens
 
-  #[var aParser = newParser(aLexer.tokens)
+  var aParser = newParser(aLexer.tokens)
   let ast = aParser.parse()
 
   # print aLexer.tokens
-  print ast]#
+  print ast

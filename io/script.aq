@@ -1,2 +1,2 @@
-
-let t = "e $(/* abc */)"
+let t = "e $(/* abc */) ohh"
+let num = 1.5e-2
