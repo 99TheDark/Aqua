@@ -1,15 +1,12 @@
 # TODO
 - Finish up other language constructs & ideas
 - Finish parser with anything already decided
+    - Unary operators
     - Access
     - Optional chaining
-    - Unary operators
-    - Imports
     - Return statements
     - Yield statements
-    - Todo statement
     - Modules
     - Visibility
 - Polish and finish how the OOP system will work
-- Add error generator
 - Complain about unclosed groups in lexer

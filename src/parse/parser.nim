@@ -38,8 +38,7 @@ proc expect(self: Parser, expected: TokenType): Token =
 proc expect(self: Parser, expected: openArray[TokenType], canTerminate: bool = false): Token = 
   let tok = self.eat()
   if tok.typ notin expected and tok.typ != Eof:
-    let last = expected.len() - 1
-    let list = expected[0..<last].join() & " or " & $expected[last]
+    let list = expected.list("or")
     panic(fmt"Expected {list}, but got {tok.typ} instead")
   
   tok

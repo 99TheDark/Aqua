@@ -1,5 +1,5 @@
-import ../token, location, ../types, group, number
-import unicode, sequtils
+import ../token, location, ../types, group, number, ../error, ../parse/message
+import unicode, sequtils, strformat, pretty
 import strutils except Whitespace
 
 # Extend seq[T] to give last/top item
@@ -129,6 +129,8 @@ proc addGroup(self: Lexer, group: Group) =
   if left.idx == right.idx:
     return
 
+  echo group
+
   self.tokens.add(Token(
     val: $self.code[left.idx..<right.idx],
     left: left,
@@ -232,7 +234,16 @@ proc lex*(self: Lexer): seq[Token] =
 
     self.group()
 
-  discard self.addIdent(capture, capStart)
+  case self.groupStack.len():
+    of 0: discard self.addIdent(capture, capStart)
+    of 1: 
+      let group = self.groupStack[0]
+      panic(fmt"Unclosed {group.name} expected ending {group.right}")
+    else:
+      print self.groupStack
+      let list = self.groupStack.map(proc(g: Group): TokenType = g.right).list("and")
+      panic(fmt"{list}")
+
 
   # Add EOF token as well
   self.tokens.add(Token(

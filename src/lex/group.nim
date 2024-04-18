@@ -12,6 +12,7 @@ type Group* = object
   right*: TokenType = None
   inner*: TokenType = None
   recursive*: bool = false
+  name*: string
 
 # Groups that can start anywhere (so not InterpolateGroup, which is $() inside a StringGroup)
 const OpenGroups* = [
@@ -20,6 +21,7 @@ const OpenGroups* = [
     left: CommentStart,
     right: NewLine,
     inner: Comment,
+    name: "single-line comment"
   ),
   Group(
     typ: MultiCommentGroup,
@@ -27,13 +29,15 @@ const OpenGroups* = [
     right: MultiCommentEnd,
     inner: MultiComment,
     recursive: true,
+    name: "multi-line comment"
   ),
   Group(
     typ: StringGroup,
     left: DoubleQuote,
     right: DoubleQuote,
     inner: String,
+    name: "string"
   ),
 ]
 
-const ClosedInterpolateGroup* = Group(typ: InterpolateGroup)
+const ClosedInterpolateGroup* = Group(typ: InterpolateGroup, name: "interpolation")
