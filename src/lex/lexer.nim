@@ -233,15 +233,13 @@ proc lex*(self: Lexer): seq[Token] =
 
     self.group()
 
-  case self.groupStack.len():
-    of 0: discard self.addIdent(capture, capStart)
-    of 1: 
-      let group = self.groupStack[0]
-      panic(fmt"Unclosed {group.name} expected ending {group.right}")
-    else:
-      let list = self.groupStack.map(proc(g: Group): TokenType = g.right).list("and")
-      panic(fmt"{list}")
-
+  if self.groupStack.len() == 0:
+    discard self.addIdent(capture, capStart)
+  else:
+    let names = self.groupStack.map(proc(g: Group): string = g.name).list("and")
+    let ends = self.groupStack.map(proc(g: Group): TokenType = g.right).list("and")
+    let plural = (if self.groupStack.len() == 1: "" else: "s")
+    panic(fmt"Unclosed {names}, expected ending{plural} {ends}")
 
   # Add EOF token as well
   self.tokens.add(Token(

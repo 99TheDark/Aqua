@@ -9,4 +9,3 @@
     - Modules
     - Visibility
 - Polish and finish how the OOP system will work
-- Complain about unclosed groups in lexer

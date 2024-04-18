@@ -21,7 +21,7 @@ const OpenGroups* = [
     left: CommentStart,
     right: NewLine,
     inner: Comment,
-    name: "single-line comment"
+    name: "single-line comment",
   ),
   Group(
     typ: MultiCommentGroup,
@@ -29,15 +29,19 @@ const OpenGroups* = [
     right: MultiCommentEnd,
     inner: MultiComment,
     recursive: true,
-    name: "multi-line comment"
+    name: "multi-line comment",
   ),
   Group(
     typ: StringGroup,
     left: DoubleQuote,
     right: DoubleQuote,
     inner: String,
-    name: "string"
+    name: "string",
   ),
 ]
 
-const ClosedInterpolateGroup* = Group(typ: InterpolateGroup, name: "interpolation")
+const ClosedInterpolateGroup* = Group(
+  typ: InterpolateGroup, 
+  right: RightParen,
+  name: "interpolation",
+)
