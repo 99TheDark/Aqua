@@ -32,4 +32,4 @@ if true ^| false {
 
 let optional: string? = null
 
-let t = "e $(/*
+let t = "x = $(/* I'm a comment! */ 3), y = $(true)."

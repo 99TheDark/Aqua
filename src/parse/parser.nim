@@ -375,11 +375,30 @@ proc parsePrimary(self: Parser): Node =
         Node(kind: Number, left: left, right: tok.right.clone(), numVal: tok.val.parseFloat())
       
       of DoubleQuote:
-        # TODO: Include string interpolation in this
+        # TODO: Seperate into seperate procedure, like everything else
         discard self.eat()
-        let str = self.expect(String)
-        let endq = self.expect(DoubleQuote)
-        Node(kind: RawString, left: left, right: endq.right.clone(), rawVal: str.val)
+        var elems: seq[Node] = @[]
+        while self.tt() != DoubleQuote:
+          let cur = self.eat()
+          case cur.typ:
+            of String:
+              elems.add(Node(
+                kind: RawString, 
+                left: cur.left.clone(), 
+                right: cur.right.clone(), 
+                rawVal: cur.val,
+              ))
+            of StringInterpolation:
+              discard self.expect(LeftParen)
+              while self.ignore(): discard
+              let interpolated = self.parseNode()
+              discard self.expect(RightParen)
+              elems.add(interpolated)
+            else:
+              panic(fmt"Expected a string or string interpolation, but got {cur.typ} instead")
+        let right = self.expect(DoubleQuote).right.clone()
+        
+        Node(kind: String, left: left, right: right, strElems: elems)
       
       of Quote:
         # TODO: Split into seperate procedure

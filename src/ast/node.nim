@@ -23,9 +23,7 @@ type Node* = ref object
       boolVal*: bool
 
     of String:
-      embedExprs*: seq[Node]
-      rawStrs*: seq[string]
-      strElems*: seq[StringElemKind]
+      strElems*: seq[Node]
 
     of RawString:
       rawVal*: string
