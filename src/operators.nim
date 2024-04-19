@@ -52,6 +52,7 @@ const
   ]
   
   Prefixing* = [
+    Subtraction,
     Not,
     CountLeadingZeroes,
     CountTrailingZeroes,

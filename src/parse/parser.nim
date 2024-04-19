@@ -87,6 +87,7 @@ proc parseMultiplicative(self: Parser): Node
 proc parseExponentiative(self: Parser): Node
 proc parseRange(self: Parser): Node
 proc parseFuncCall(self: Parser): Node
+proc parseUnary(self: Parser): Node
 proc parsePrimary(self: Parser): Node
 
 # More general parsing
@@ -341,7 +342,7 @@ proc parseRange(self: Parser): Node =
   left
 
 proc parseFuncCall(self: Parser): Node = 
-  let left = self.parsePrimary()
+  let left = self.parseUnary()
   if self.tt() == LeftParen:
     discard self.eat()
     let args = self.parseList(parseNode)
@@ -354,6 +355,20 @@ proc parseFuncCall(self: Parser): Node =
       args: args,
     )
   left
+
+proc parseUnary(self: Parser): Node =
+  if self.tt() in Prefixing:
+    let op = self.eat()
+    let arg = self.parsePrimary()
+    return Node(
+      kind: UnaryOp, 
+      left: op.left.clone(), 
+      right: arg.right.clone(), 
+      arg: arg, 
+      unop: op.typ,
+    )
+  
+  self.parsePrimary()
 
 proc parsePrimary(self: Parser): Node =
   let tok = self.at()
