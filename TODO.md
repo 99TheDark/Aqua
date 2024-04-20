@@ -7,5 +7,7 @@
     - Yield statements
     - Modules
     - Visibility
+    - Group parsing
 - Polish and finish how the OOP system will work
 - Be able to try `parseNode` in binary and unary operations, etc
+- Fix identifiers ignoring `.` outside of numbers

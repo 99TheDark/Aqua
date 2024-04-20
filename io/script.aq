@@ -33,3 +33,4 @@ if true ^| false {
 let optional: string? = null
 
 let t = "x = $(/* I'm a comment! */ 3), y = $(true)."
+let thing = t.x?.y::z

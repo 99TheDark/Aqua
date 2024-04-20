@@ -9,8 +9,6 @@ when isMainModule:
   discard aLexer.lex()
   aLexer.filter()
   
-  print aLexer.tokens
-
   var aParser = newParser(aLexer.tokens)
   let ast = aParser.parse()
 
