@@ -65,6 +65,8 @@ proc add(self: Lexer, tok: Token) =
 
 proc addIdent(self: Lexer, capture: seq[Rune], capStart: Location): bool =
   let size = capture.len()
+  self.numeric = false # Resetting if the identifier is numeric
+
   if size != 0:
     var identType = Identifier
     block main:
