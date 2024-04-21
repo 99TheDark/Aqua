@@ -432,6 +432,12 @@ proc parsePrimary(self: Parser): Node =
       
       of Identifier:
         self.parseIdent()
+      
+      of LeftParen:
+        discard self.eat()
+        let inner = self.parseNode()
+        discard self.expect(RightParen)
+        inner
 
       else: 
         panic(fmt"Expected a statement, got {self.tt()} instead")

@@ -34,3 +34,5 @@ let optional: string? = null
 
 let t = "x = $(/* I'm a comment! */ 3), y = $(true)."
 let thing = t.x?.y::z
+
+let complexThing: bool = !((1 - 3.4) ^ 2.65 >= 8.7) !& true
