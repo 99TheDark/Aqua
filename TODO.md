@@ -1,8 +1,6 @@
 # TODO
 - Finish up other language constructs & ideas
 - Finish parser with anything already decided
-    - Access
-    - Optional chaining
     - Return statements
     - Yield statements
     - Modules
