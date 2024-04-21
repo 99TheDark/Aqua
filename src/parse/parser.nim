@@ -1,9 +1,15 @@
 import ../ast/[node, kind], ../[token, types, error], message, ../lex/location, ../operators
 import strformat, strutils, unicode, options
 
-type Parser* = ref object
-  tokens: seq[Token]
-  idx: int
+type 
+  Parser* = ref object
+    tokens: seq[Token]
+    idx: int
+  
+  Generator = proc(self: Parser): Node
+
+proc gen(fn: proc(self: Parser): Node): Option[Generator] =
+  some(Generator(fn))
 
 proc at(self: Parser): Token = self.tokens[self.idx]
 
@@ -68,7 +74,7 @@ proc ignore(self: Parser): bool =
 
 # List of all the procedures before they are defined
 proc parseNode(self: Parser): Node
-proc parseStmt(self: Parser): Node
+proc parseStmt(self: Parser, fallback: Option[Generator] = none(Generator)): Node
 proc parseLookaheadStmt(self: Parser): Node
 proc parseDecl(self: Parser): Node
 proc parseIfStmt(self: Parser): Node
@@ -106,7 +112,7 @@ proc parseBlock(self: Parser): Node =
   let right = self.expect(RightBrace).right.clone()
   Node(kind: Block, left: left, right: right, stmts: stmts)
 
-proc parseList(self: Parser, node: proc(self: Parser): Node): seq[Node] =
+proc parseList(self: Parser, node: Generator): seq[Node] =
   var list: seq[Node] = @[]
   while true:
     if self.tt().isLineSeperator():
@@ -121,11 +127,11 @@ proc parseList(self: Parser, node: proc(self: Parser): Node): seq[Node] =
   
   list
 
-proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: proc(self: Parser): Node): Node =
-  var lhs = self.next()
+proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: Generator): Node =
+  var lhs = self.parseStmt(some(next))
   while self.tt() in catagory:
     let tok = self.eat()
-    let rhs = self.next()
+    let rhs = self.parseStmt(some(next))
 
     lhs = Node(
       kind: BinaryOp, 
@@ -164,7 +170,7 @@ proc parseTypedIdent(self: Parser): Node =
   Node(kind: TypedIdent, left: iden.left.clone(), right: right, iden: iden, annot: annot)
 
 # Statements begin the cacade, with keyword-starting statements like 'if' and 'func'
-proc parseStmt(self: Parser): Node =
+proc parseStmt(self: Parser, fallback: Option[Generator] = none(Generator)): Node =
   return (
     case self.tt():
       of LeftBrace: self.parseBlock()
@@ -186,7 +192,12 @@ proc parseStmt(self: Parser): Node =
       # TODO: Implement enum
       # TODO: Implement generic contraints
       # TODO: Write all the todos for the rest of the statements :P
-      else: self.parseLookaheadStmt()
+      else: 
+        if fallback.isNone():
+          self.parseLookaheadStmt()
+        else:
+          let next = fallback.unsafeGet()
+          self.next()
   )
 
 proc parseDecl(self: Parser): Node =
@@ -360,7 +371,7 @@ proc parseFuncCall(self: Parser): Node =
 proc parseUnary(self: Parser): Node =
   if self.tt() in Prefixing:
     let op = self.eat()
-    let arg = self.parseAccessive()
+    let arg = self.parseStmt(gen(parseAccessive))
     return Node(
       kind: UnaryOp, 
       left: op.left.clone(), 
