@@ -110,6 +110,7 @@ type TokenType* = enum
   Function
   Return
   Defer
+  Iterator
   Yield
   Distinct
 
@@ -186,6 +187,7 @@ const Keywords* = {
   "func": Function,
   "return": Return,
   "defer": Defer,
+  "iterator": Iterator,
   "yield": Yield,
   "distinct": Distinct,
   "throw": Throw,
