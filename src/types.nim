@@ -116,7 +116,6 @@ type TokenType* = enum
 
   # Accessor
   Dot
-  DoubleColon
   OptionalChain
 
   # Error handling
@@ -258,7 +257,6 @@ const Symbols* = {
   "=>": FatArrow,
   "@": PatternBinder,
   ".": Dot,
-  "::": DoubleColon,
   "?.": OptionalChain,
   " ": Whitespace,
   "\t": Whitespace,

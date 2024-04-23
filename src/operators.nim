@@ -3,7 +3,6 @@ import types
 const 
   Accessive* = [
     Dot,
-    DoubleColon,
     OptionalChain,
   ]
   
