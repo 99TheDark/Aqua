@@ -6,5 +6,5 @@
     - Modules
     - Visibility
 - Polish and finish how the OOP system will work
-- Add more (all) whitespace and newline characters
-- Verify and catagorize numbers in parser (Decimal, Scientific, Integral, BasedIntegral)
+- Add all whitespace characters
+- Verify and catagorize numbers in parser (Decimal, Scientific, Integral, Based)
