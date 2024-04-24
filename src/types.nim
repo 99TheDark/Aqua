@@ -96,7 +96,7 @@ type TokenType* = enum
 
   # Data movement
   Module
-  Import
+  Use
 
   # Complex types
   Class
@@ -174,7 +174,7 @@ const Keywords* = {
   "pri": Private,
   "inn": Inner,
   "mod": Module,
-  "import": Import,
+  "use": Use,
   "class": Class,
   "new": New,
   "oper": Operator,
