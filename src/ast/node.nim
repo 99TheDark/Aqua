@@ -2,7 +2,7 @@ import ../lex/location, kind, unicode, options, ../types
 
 type Node* = ref object
   case kind*: Kind
-    of Null, Continue, Todo:
+    of Null, Module, Use, Continue, Todo:
       discard
 
     of Ident:
@@ -68,13 +68,17 @@ type Node* = ref object
       callee*: Node
       args*: seq[Node]
 
-    of Access, SafeAccess, ConstAccess:
+    of Access, SafeAccess:
       parent*: Node
       child*: Node
     
     of Index:
       indexable*: Node
       idx*: Node
+    
+    of Visibility:
+      visKind*: VisKind
+      visArg*: Node
     
     of ControlLabel:
       ctrlLabel*: Node

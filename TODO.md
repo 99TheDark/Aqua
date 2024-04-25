@@ -4,7 +4,6 @@
     - Return statements
     - Yield statements
     - Modules
-    - Visibility
 - Polish and finish how the OOP system will work
 - Add all whitespace characters
-- Verify and catagorize numbers in parser (Decimal, Scientific, Integral, Based)
+- Verify and catagorize numbers in parser (Decimal, Scientific, Integral, Based, Imaginary)

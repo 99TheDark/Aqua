@@ -20,8 +20,10 @@ type
     FuncCall
     Access
     SafeAccess
-    ConstAccess
     Index
+    Module
+    Use
+    Visibility
     ControlLabel
     Block
     IfStmt
@@ -54,3 +56,7 @@ type
     VarDecl
     LetDecl
   
+  VisKind* = enum
+    PubVis
+    InnVis
+    PriVis

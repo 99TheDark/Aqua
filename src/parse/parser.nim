@@ -1,4 +1,4 @@
-import ../ast/[node, kind], ../[token, types, error], message, ../lex/location, ../operators
+import ../ast/[node, kind, mapping], ../[token, types, error], message, ../lex/location, ../operators
 import strformat, strutils, unicode, options
 
 type 
@@ -84,6 +84,7 @@ proc parseDoWhileLoop(self: Parser): Node
 proc parseLoop(self: Parser): Node
 proc parseBreak(self: Parser): Node
 proc parseContinue(self: Parser): Node
+proc parseVisibility(self: Parser): Node
 proc parseExpr(self: Parser): Node
 proc parseComparative(self: Parser): Node
 proc parseLogical(self: Parser): Node
@@ -192,6 +193,7 @@ proc parseStmt(self: Parser, fallback: Option[Generator] = none(Generator)): Nod
       # TODO: Implement enum
       # TODO: Implement generic contraints
       # TODO: Write all the todos for the rest of the statements :P
+      of Public, Inner, Private: self.parseVisibility()
       else: 
         if fallback.isNone():
           self.parseLookaheadStmt()
@@ -209,7 +211,7 @@ proc parseDecl(self: Parser): Node =
     kind: Decl, 
     left: kind.left.clone(), 
     right: vals[^1].right.clone(), 
-    decKind: (if kind.typ == Var: VarDecl else: LetDecl),
+    decKind: mapDecl(kind.typ),
     decIdens: idens, 
     decVals: vals,
   )
@@ -288,6 +290,17 @@ proc parseBreak(self: Parser): Node =
 proc parseContinue(self: Parser): Node =
   let tok = self.eat()
   Node(kind: Continue, left: tok.left.clone(), right: tok.right.clone())
+
+proc parseVisibility(self: Parser): Node =
+  let tok = self.eat()
+  let arg = self.parseNode()
+  Node(
+    kind: Visibility, 
+    left: tok.left.clone(), 
+    right: arg.right.clone(), 
+    visKind: mapVis(tok.typ),
+    visArg: arg,
+  )
 
 proc parseLookaheadStmt(self: Parser): Node =
   if self.pattern([Quote, Identifier, Colon]):
