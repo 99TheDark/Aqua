@@ -479,6 +479,7 @@ proc parse*(self: Parser): seq[Node] =
     if self.ignore(): continue
 
     nodes.add(self.parseNode())
+    discard self.expect([NewLine, Semicolon], canTerminate=true)
 
   nodes
 
