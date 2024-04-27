@@ -231,8 +231,13 @@ proc lex*(self: Lexer): seq[Token] =
           self.addGroup(group)
           self.add(symbol)
           discard self.groupStack.pop()
+        elif symbol.typ == NewLine:
+          self.loc.col = 0
+          self.loc.idx += 1
+          self.loc.row += 1
         else:
           self.loc.next()
+
         continue
       else:
         self.loc.next()

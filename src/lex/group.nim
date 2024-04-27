@@ -45,3 +45,10 @@ const ClosedInterpolateGroup* = Group(
   right: RightParen,
   name: "interpolation",
 )
+
+const OpenGroupInside* = (
+  var arr: array[5, TokenType]
+  for idx, group in OpenGroups:
+    arr[idx] = group.inner
+  arr
+)
