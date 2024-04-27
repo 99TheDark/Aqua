@@ -303,6 +303,9 @@ const BinaryOperators* = [
 proc isLineSeperator*(self: TokenType): bool = 
   self == NewLine or self == Semicolon
 
+proc isLineEnd*(self: TokenType): bool =
+  self.isLineSeperator() or self == Eof
+
 proc formatName[T = Ordinal](self: T): string = 
   self.symbolName.replacef(re"(?<=[a-z])([A-Z])", " $1").toLower()
 

@@ -1,9 +1,11 @@
 # TODO
-- Finish up other language constructs & ideas
-- Finish parser with anything already decided
-    - Return statements
-    - Yield statements
-    - Modules
-- Polish and finish how the OOP system will work
+- Add return statements
+- Add yield statements
+- Add modules
 - Add all whitespace characters
+- Breaking a value to a certain spot, ie `break 'label` vs `break 5` vs `break 'label 5`
 - Verify and catagorize numbers in parser (Decimal, Scientific, Integral, Based, Imaginary)
+- Implement `parseDestructure`
+- Polish and finish how the OOP system will work
+- Finish up other language constructs & ideas
+- Add escape characters

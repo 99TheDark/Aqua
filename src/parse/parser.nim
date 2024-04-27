@@ -84,6 +84,7 @@ proc parseDoWhileLoop(self: Parser): Node
 proc parseLoop(self: Parser): Node
 proc parseBreak(self: Parser): Node
 proc parseContinue(self: Parser): Node
+proc parseReturn(self: Parser): Node
 proc parseVisibility(self: Parser): Node
 proc parseExpr(self: Parser): Node
 proc parseComparative(self: Parser): Node
@@ -187,6 +188,7 @@ proc parseStmt(self: Parser, fallback: Option[Generator] = none(Generator)): Nod
       # TODO: Implement match
       of Break: self.parseBreak()
       of Continue: self.parseContinue()
+      of Return: self.parseReturn()
       # TODO: Implement func
       # TODO: Implement return
       # TODO: Implement class and all its subnodes
@@ -283,13 +285,26 @@ proc parseLoop(self: Parser): Node =
   Node(kind: Loop, left: left, right: body.right.clone(), loopBody: body)
 
 proc parseBreak(self: Parser): Node =
-  let left = self.start()
-  let arg = self.parseNode()
-  Node(kind: Break, left: left, right: arg.right.clone(), breakArg: arg)
+  let start = self.eat()
+  let label = (if self.tt().isLineEnd(): none(Node) else: some(self.parseNode())) 
+  let arg = (if self.tt().isLineEnd(): none(Node) else: some(self.parseNode())) 
+  let right = (
+    if label.isSome(): 
+      label.unsafeGet().right 
+    elif arg.isSome(): 
+      arg.unsafeGet().right 
+    else: 
+      start.right
+  ).clone()
+
+  Node(kind: Break, left: start.left.clone(), right: right, breakArg: arg)
 
 proc parseContinue(self: Parser): Node =
   let tok = self.eat()
   Node(kind: Continue, left: tok.left.clone(), right: tok.right.clone())
+
+proc parseReturn(self: Parser): Node =
+  discard
 
 proc parseVisibility(self: Parser): Node =
   let tok = self.eat()

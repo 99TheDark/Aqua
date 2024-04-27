@@ -35,7 +35,9 @@ proc newErrorGenerator*(code: seq[Rune]): ErrorGenerator =
   ErrorGenerator(lines: code.split(Rune(ord('\n'))))
 
 proc panic*(msg: string) =
+  var str = ""
+  
   let err = AquaError()
-  err.msg = msg
+  err.msg = str
 
   raise err

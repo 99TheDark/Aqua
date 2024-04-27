@@ -109,7 +109,8 @@ type Node* = ref object
       loopBody*: Node
     
     of Break:
-      breakArg*: Node
+      breakLabel*: Option[Node]
+      breakArg*: Option[Node]
     
     of Label:
       label*: Node
