@@ -3,6 +3,7 @@ import strformat, strutils, unicode, options
 
 type 
   Parser* = ref object
+    errgen*: ErrorGenerator
     tokens: seq[Token]
     idx: int
   
@@ -10,6 +11,10 @@ type
 
 proc gen(fn: proc(self: Parser): Node): Option[Generator] =
   some(Generator(fn))
+
+# Parser methods
+proc panic(self: Parser, tok: Token, msg: string) =
+  self.errgen.panic(msg, tok.left, tok.right)
 
 proc at(self: Parser): Token = self.tokens[self.idx]
 
@@ -37,7 +42,7 @@ proc start(self: Parser): Location =
 proc expect(self: Parser, expected: TokenType): Token = 
   let tok = self.eat()
   if tok.typ != expected:
-    panic(fmt"Expected {expected}, but got {tok.typ} instead")
+    self.panic(tok, fmt"Expected {expected}, but got {tok.typ} instead")
   
   tok
 
@@ -45,7 +50,7 @@ proc expect(self: Parser, expected: openArray[TokenType], canTerminate: bool = f
   let tok = self.eat()
   if tok.typ notin expected and tok.typ != Eof:
     let list = expected.list("or")
-    panic(fmt"Expected {list}, but got {tok.typ} instead")
+    self.panic(tok, fmt"Expected {list}, but got {tok.typ} instead")
   
   tok
 
@@ -179,7 +184,7 @@ proc parseStmt(self: Parser, fallback: Option[Generator] = none(Generator)): Nod
       of Let, Var: self.parseDecl()
       of If: self.parseIfStmt()
       of Else: 
-        panic("An else case must be directly proceeding an if statement or if-else case") 
+        self.panic(self.at(), "An else case must be directly proceeding an if statement or if-else case") 
         Node()
       of For: self.parseForLoop()
       of While: self.parseWhileLoop()
@@ -453,7 +458,7 @@ proc parsePrimary(self: Parser): Node =
               discard self.expect(RightParen)
               elems.add(interpolated)
             else:
-              panic(fmt"Expected a string or string interpolation, but got {cur.typ} instead")
+              self.panic(cur, fmt"Expected a string or string interpolation, but got {cur.typ} instead")
         let right = self.expect(DoubleQuote).right.clone()
         
         Node(kind: String, left: left, right: right, strElems: elems)
@@ -479,7 +484,7 @@ proc parsePrimary(self: Parser): Node =
         inner
 
       else: 
-        panic(fmt"Expected a statement, got {self.tt()} instead")
+        self.panic(tok, fmt"Expected a statement, got {self.tt()} instead")
         Node() # Return something, even if an error will immediately be raised
   )
 
@@ -498,5 +503,5 @@ proc parse*(self: Parser): seq[Node] =
 
   nodes
 
-proc newParser*(tokens: seq[Token]): Parser =
-  Parser(tokens: tokens, idx: 0)
+proc newParser*(tokens: seq[Token], gen: ErrorGenerator): Parser =
+  Parser(errgen: gen, tokens: tokens, idx: 0)

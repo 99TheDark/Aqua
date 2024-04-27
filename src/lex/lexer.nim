@@ -8,11 +8,15 @@ proc top[T](self: seq[T]): T = self[self.len() - 1]
 # Lexer
 type Lexer* = ref object
   code*: seq[Rune]
+  errgen*: ErrorGenerator
   loc: Location
   groupStack: seq[Group]
   numeric: bool
   parenCount: int
   tokens*: seq[Token]
+
+proc panic(self: Lexer, left: Location, right: Location, msg: string) =
+  self.errgen.panic(msg, left, right)
 
 # Many private methods for lexing
 proc lexNorm(self: Lexer): bool =
@@ -241,7 +245,7 @@ proc lex*(self: Lexer): seq[Token] =
     let names = self.groupStack.map(proc(g: Group): string = g.name).list("and")
     let ends = self.groupStack.map(proc(g: Group): TokenType = g.right).list("and")
     let plural = (if self.groupStack.len() == 1: "" else: "s")
-    panic(fmt"Unclosed {names}, expected ending{plural} {ends}")
+    self.panic(self.loc, self.loc, fmt"Unclosed {names}, expected ending{plural} {ends}")
 
   # Add EOF token as well
   self.tokens.add(Token(
@@ -258,9 +262,10 @@ proc filter*(self: Lexer) =
     proc(tok: Token): bool = tok.typ != Whitespace
   )
 
-proc newLexer*(src: string): Lexer =
+proc newLexer*(code: seq[Rune], gen: ErrorGenerator): Lexer =
   Lexer(
-    code: src.toRunes(),
+    code: code,
+    errgen: gen,
     loc: emptyLoc(),
     groupStack: @[],
     numeric: false,
