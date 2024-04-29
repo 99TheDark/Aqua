@@ -329,5 +329,7 @@ proc `$`*(self: TokenType): string =
     return fmt"'{InvKeywords[self]}'"
   elif InvSymbols.hasKey(self): 
     return fmt"'{InvSymbols[self]}'"
+  elif self == Eof:
+    return "end of file"
   else:
     return self.formatName()

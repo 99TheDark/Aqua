@@ -25,7 +25,8 @@ proc lexNorm(self: Lexer): bool =
 
   self.groupStack.top().typ == InterpolateGroup
 
-proc at(self: Lexer): Rune = self.code[self.loc.idx]
+proc at(self: Lexer): Rune = 
+  self.code[self.loc.idx]
 
 proc ahead(self: Lexer, count: int): seq[Rune] =
   let start = self.loc.idx

@@ -18,7 +18,8 @@ proc panic(self: Parser, tok: Token, msg: string) =
 
 proc at(self: Parser): Token = self.tokens[self.idx]
 
-proc tt(self: Parser): TokenType = self.at().typ
+proc tt(self: Parser): TokenType = 
+  self.at().typ
 
 proc eat(self: Parser): Token = 
   let tok = self.at()
@@ -495,7 +496,7 @@ proc parseNode(self: Parser): Node =
 # TODO: Change to return a Program object rather than just a seq[Node]
 proc parse*(self: Parser): seq[Node] =
   var nodes: seq[Node] = @[]
-  while self.tt() != Eof:
+  while self.idx <= self.tokens.len() - 1 and self.tt() != Eof:
     if self.ignore(): continue
 
     nodes.add(self.parseNode())

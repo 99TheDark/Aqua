@@ -1,6 +1,7 @@
 # TODO
 - Add return statements
 - Add yield statements
+- Add defer statements
 - Add modules
 - Add all whitespace characters
 - Breaking a value to a certain spot, ie `break 'label` vs `break 5` vs `break 'label 5`
