@@ -116,7 +116,7 @@ type Node* = ref object
       label*: Node
     
     of Return:
-      retVal*: Node
+      retVal*: Option[Node]
     
     of Defer:
       deferred*: Node

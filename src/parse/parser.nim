@@ -334,7 +334,16 @@ proc parseContinue(self: Parser): Node =
   Node(kind: Continue, left: tok.left.clone(), right: tok.right.clone())
 
 proc parseReturn(self: Parser): Node =
-  discard
+  let tok = self.eat()
+  let (val, right) = (
+    if self.tt().isLineEnd(): 
+      (none(Node), tok.right.clone())
+    else: 
+      let node = self.parseNode()
+      (some(node), node.right.clone())
+  )
+
+  Node(kind: Return, left: tok.left.clone(), right: right, retVal: val)
 
 proc parseVisibility(self: Parser): Node =
   let tok = self.eat()

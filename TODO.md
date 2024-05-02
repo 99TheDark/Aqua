@@ -1,5 +1,4 @@
 # TODO
-- Add return statements
 - Add yield statements
 - Add defer statements
 - Add modules
@@ -8,4 +7,4 @@
 - Implement `parseDestructure`
 - Polish and finish how the OOP system will work
 - Finish up other language constructs & ideas
-- Add escape characters
+- Add escape characters in lexer

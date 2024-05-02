@@ -44,4 +44,6 @@ pub let LineSize = 5
 break 'thing
 break 'otherThing -1
 break "hello"
-break 'a' 3
+
+return (7 * x - 4) ^ 5
+return
