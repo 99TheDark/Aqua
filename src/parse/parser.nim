@@ -94,6 +94,7 @@ proc parseLoop(self: Parser): Node
 proc parseBreak(self: Parser): Node
 proc parseContinue(self: Parser): Node
 proc parseReturn(self: Parser): Node
+proc parseYield(self: Parser): Node
 proc parseVisibility(self: Parser): Node
 proc parseExpr(self: Parser): Node
 proc parseComparative(self: Parser): Node
@@ -219,6 +220,7 @@ proc parseStmt(self: Parser, fallback: Option[Generator] = none(Generator)): Nod
       of Break: self.parseBreak()
       of Continue: self.parseContinue()
       of Return: self.parseReturn()
+      of Yield: self.parseYield()
       # TODO: Implement func
       # TODO: Implement return
       # TODO: Implement class and all its subnodes
@@ -344,6 +346,11 @@ proc parseReturn(self: Parser): Node =
   )
 
   Node(kind: Return, left: tok.left.clone(), right: right, retVal: val)
+
+proc parseYield(self: Parser): Node =
+  let tok = self.eat()
+  let val = self.parseNode()
+  Node(kind: Yield, left: tok.left.clone(), right: val.right.clone(), yieldVal: val)
 
 proc parseVisibility(self: Parser): Node =
   let tok = self.eat()

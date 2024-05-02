@@ -1,5 +1,4 @@
 # TODO
-- Add yield statements
 - Add defer statements
 - Add modules
 - Add all whitespace characters

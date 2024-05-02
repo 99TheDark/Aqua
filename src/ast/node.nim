@@ -122,7 +122,7 @@ type Node* = ref object
       deferred*: Node
     
     of Yield:
-      genVal*: Node
+      yieldVal*: Node
     
     of Throw:
       err*: Node
