@@ -4,7 +4,6 @@
 - Add defer statements
 - Add modules
 - Add all whitespace characters
-- Breaking a value to a certain spot, ie `break 'label` vs `break 5` vs `break 'label 5`
 - Verify and catagorize numbers in parser (Decimal, Scientific, Integral, Based, Imaginary)
 - Implement `parseDestructure`
 - Polish and finish how the OOP system will work

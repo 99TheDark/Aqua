@@ -6,7 +6,7 @@ type TokenType* = enum
   Number
   Boolean
   String
-  Char
+  Character
   Null
 
   # Delimiters

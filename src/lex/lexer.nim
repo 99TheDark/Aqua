@@ -172,7 +172,7 @@ proc lex*(self: Lexer): seq[Token] =
               val: $ch,
               left: self.loc.clone(),
               size: 1,
-              typ: Char,
+              typ: Character,
             ))
             self.add(Token(
               val: "'",

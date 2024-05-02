@@ -14,7 +14,10 @@ proc gen(fn: proc(self: Parser): Node): Option[Generator] =
 
 # Parser methods
 proc panic(self: Parser, tok: Token, msg: string) =
-  self.errgen.panic(msg, tok.left, tok.right)
+  self.errgen.panic(msg, tok.left.clone(), tok.right.clone())
+
+proc panic(self: Parser, node: Node, msg: string) = 
+  self.errgen.panic(msg, node.left.clone(), node.right.clone())
 
 proc at(self: Parser): Token = self.tokens[self.idx]
 
@@ -104,6 +107,10 @@ proc parseFuncCall(self: Parser): Node
 proc parseUnary(self: Parser): Node
 proc parseAccessive(self: Parser): Node
 proc parsePrimary(self: Parser): Node
+proc parseBoolean(self: Parser): Node
+proc parseNull(self: Parser): Node
+proc parseNumber(self: Parser): Node
+proc parseString(self: Parser): Node
 
 # More general parsing
 proc parseBlock(self: Parser): Node =
@@ -135,6 +142,10 @@ proc parseList(self: Parser, node: Generator): seq[Node] =
   
   list
 
+proc parseIdent(self: Parser): Node =
+  let tok = self.expect(Identifier)
+  Node(kind: Ident, left: tok.left.clone(), right: tok.right.clone(), name: tok.val)
+
 proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: Generator): Node =
   var lhs = self.parseStmt(some(next))
   while self.tt() in catagory:
@@ -152,9 +163,22 @@ proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: Generator
   
   lhs
 
-proc parseIdent(self: Parser): Node =
-  let tok = self.expect(Identifier)
-  Node(kind: Ident, left: tok.left.clone(), right: tok.right.clone(), name: tok.val)
+proc parseQuotive(self: Parser): Node =
+  let tok = self.eat()
+  if self.tt() == Character:
+    let ch = self.eat().val
+    let endq = self.expect(Quote)
+    Node(kind: Char, left: tok.left.clone(), right: endq.right.clone(), charVal: ch.toRunes()[0])
+  else:
+    let label = self.parseIdent()
+    Node(kind: Label, left: tok.left.clone(), right: label.right.clone(), label: label)
+  
+proc parseLabel(self: Parser): Node =
+  let node = self.parseQuotive()
+  if node.kind != Label:
+    self.panic(node, fmt"Expected a label, but got {node.kind} instead")
+  
+  node
 
 proc parseType(self: Parser): Node =
   let base = self.parseIdent()
@@ -292,7 +316,7 @@ proc parseLoop(self: Parser): Node =
 
 proc parseBreak(self: Parser): Node =
   let start = self.eat()
-  let label = (if self.tt().isLineEnd(): none(Node) else: some(self.parseNode())) 
+  let label = (if self.tt().isLineEnd() or self.tt() != Quote: none(Node) else: some(self.parseLabel())) 
   let arg = (if self.tt().isLineEnd(): none(Node) else: some(self.parseNode())) 
   let right = (
     if label.isSome(): 
@@ -301,9 +325,9 @@ proc parseBreak(self: Parser): Node =
       arg.unsafeGet().right 
     else: 
       start.right
-  ).clone()
+  )
 
-  Node(kind: Break, left: start.left.clone(), right: right, breakArg: arg)
+  Node(kind: Break, left: start.left.clone(), right: right.clone(), breakLabel: label, breakArg: arg)
 
 proc parseContinue(self: Parser): Node =
   let tok = self.eat()
@@ -421,73 +445,61 @@ proc parseAccessive(self: Parser): Node =
 
 proc parsePrimary(self: Parser): Node =
   let tok = self.at()
-  let left = tok.left.clone()
   return (
     case tok.typ:
-      of Boolean: 
-        # TODO: Split into seperate procedure
-        discard self.eat()
-        Node(kind: Bool, left: left, right: tok.right.clone(), boolVal: tok.val == "true") 
-      
-      of Null:
-        discard self.eat()
-        Node(kind: Null, left: left, right: tok.right.clone())
-      
-      of Number:
-        # TODO: Use far better numerical parser
-        discard self.eat()
-        Node(kind: Number, left: left, right: tok.right.clone(), numVal: tok.val.parseFloat())
-      
-      of DoubleQuote:
-        # TODO: Seperate into seperate procedure, like everything else
-        discard self.eat()
-        var elems: seq[Node] = @[]
-        while self.tt() != DoubleQuote:
-          let cur = self.eat()
-          case cur.typ:
-            of String:
-              elems.add(Node(
-                kind: RawString, 
-                left: cur.left.clone(), 
-                right: cur.right.clone(), 
-                rawVal: cur.val,
-              ))
-            of StringInterpolation:
-              discard self.expect(LeftParen)
-              while self.ignore(): discard
-              let interpolated = self.parseNode()
-              discard self.expect(RightParen)
-              elems.add(interpolated)
-            else:
-              self.panic(cur, fmt"Expected a string or string interpolation, but got {cur.typ} instead")
-        let right = self.expect(DoubleQuote).right.clone()
-        
-        Node(kind: String, left: left, right: right, strElems: elems)
-      
-      of Quote:
-        # TODO: Split into seperate procedure
-        discard self.eat()
-        if self.tt() == Char:
-          let ch = self.eat().val
-          let endq = self.expect(Quote)
-          Node(kind: Char, left: left, right: endq.right.clone(), charVal: ch.toRunes()[0])
-        else:
-          let label = self.parseIdent()
-          Node(kind: Label, left: left, right: label.right.clone(), label: label)
-      
-      of Identifier:
-        self.parseIdent()
-      
+      of Boolean: self.parseBoolean()
+      of Null: self.parseNull()
+      of Number: self.parseNumber()
+      of DoubleQuote: self.parseString()
+      of Quote: self.parseQuotive()
+      of Identifier: self.parseIdent()
       of LeftParen:
         discard self.eat()
         let inner = self.parseNode()
         discard self.expect(RightParen)
         inner
-
       else: 
-        self.panic(tok, fmt"Expected a statement, got {self.tt()} instead")
+        self.panic(tok, fmt"Expected a statement or expression, got {self.tt()} instead")
         Node() # Return something, even if an error will immediately be raised
   )
+
+proc parseBoolean(self: Parser): Node =
+  let tok = self.expect(Boolean)
+  Node(kind: Bool, left: tok.left.clone(), right: tok.right.clone(), boolVal: tok.val == "true") 
+
+proc parseNull(self: Parser): Node =
+  let tok = self.expect(Null)
+  Node(kind: Null, left: tok.left.clone(), right: tok.right.clone())
+
+proc parseNumber(self: Parser): Node =
+  # TODO: Use far better numerical parser
+  let tok = self.expect(Number)
+  Node(kind: Number, left: tok.left.clone(), right: tok.right.clone(), numVal: tok.val.parseFloat())
+
+proc parseString(self: Parser): Node = 
+  let tok = self.eat()
+  var elems: seq[Node] = @[]
+  while self.tt() != DoubleQuote:
+    let cur = self.eat()
+    case cur.typ:
+      of String:
+        elems.add(Node(
+          kind: RawString, 
+          left: cur.left.clone(), 
+          right: cur.right.clone(), 
+          rawVal: cur.val,
+        ))
+      of StringInterpolation:
+        discard self.expect(LeftParen)
+        while self.ignore(): discard
+        let interpolated = self.parseNode()
+        discard self.expect(RightParen)
+        elems.add(interpolated)
+      else:
+        self.panic(cur, fmt"Expected a string or string interpolation, but got {cur.typ} instead")
+  let right = self.expect(DoubleQuote).right.clone()
+  
+  Node(kind: String, left: tok.left.clone(), right: right, strElems: elems)
 
 # A large cascade of parsing
 proc parseNode(self: Parser): Node =
