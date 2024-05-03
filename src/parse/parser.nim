@@ -121,7 +121,7 @@ proc parseBlock(self: Parser): Node =
   while self.tt() != RightBrace:
     if self.ignore(): continue
 
-    stmts.add(self.parseNode())
+    stmts.add(self.parseStmt())
     if self.tt() != RightBrace:
       discard self.expect([NewLine, Semicolon], canTerminate=true)
 

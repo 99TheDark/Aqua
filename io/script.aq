@@ -50,6 +50,7 @@ yield "true == $(!false)"
 
 defer let x = 3
 defer {
+    3 + 2
     print(7)
 }
 
