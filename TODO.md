@@ -1,6 +1,5 @@
 # TODO
 - Add assignment expressions
-- Stop expressions from being parsed when calling `parseStmt`, but allow when using `parseNode`
 - Add all whitespace characters
 - Add ternary operator `cond ? truthy : falsy`
 - Verify and catagorize numbers in parser (Decimal, Scientific, Integral, Based, Imaginary)

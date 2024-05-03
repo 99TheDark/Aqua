@@ -12,6 +12,9 @@ type
 proc gen(fn: proc(self: Parser): Node): Option[Generator] =
   some(Generator(fn))
 
+proc gen(fn: proc(self: Parser, fallback: Option[Generator] = none(Generator)): Node): Generator =
+  proc(self: Parser): Node = self.fn()
+
 # Parser methods
 proc panic(self: Parser, tok: Token, msg: string) =
   self.errgen.panic(msg, tok.left.clone(), tok.right.clone())
@@ -82,9 +85,9 @@ proc ignore(self: Parser): bool =
   false
 
 # List of all the procedures before they are defined
-proc parseNode(self: Parser): Node
-proc parseStmt(self: Parser, fallback: Option[Generator] = none(Generator)): Node
-proc parseLookaheadStmt(self: Parser): Node
+proc parseNode(self: Parser, fallback: Option[Generator] = none(Generator)): Node
+proc parseStmt(self: Parser): Node
+proc parseLookahead(self: Parser): Node
 proc parseDecl(self: Parser): Node
 proc parseIfStmt(self: Parser): Node
 proc parseForLoop(self: Parser): Node
@@ -149,10 +152,10 @@ proc parseIdent(self: Parser): Node =
   Node(kind: Ident, left: tok.left.clone(), right: tok.right.clone(), name: tok.val)
 
 proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: Generator): Node =
-  var lhs = self.parseStmt(some(next))
+  var lhs = self.parseNode(some(next))
   while self.tt() in catagory:
     let tok = self.eat()
-    let rhs = self.parseStmt(some(next))
+    let rhs = self.parseNode(some(next))
 
     lhs = Node(
       kind: BinaryOp, 
@@ -204,7 +207,7 @@ proc parseTypedIdent(self: Parser): Node =
   Node(kind: TypedIdent, left: iden.left.clone(), right: right, iden: iden, annot: annot)
 
 # Statements begin the cacade, with keyword-starting statements like 'if' and 'func'
-proc parseStmt(self: Parser, fallback: Option[Generator] = none(Generator)): Node =
+proc parseStmt(self: Parser): Node =
   return (
     case self.tt():
       of LeftBrace: self.parseBlock()
@@ -230,19 +233,14 @@ proc parseStmt(self: Parser, fallback: Option[Generator] = none(Generator)): Nod
       # TODO: Implement generic contraints
       # TODO: Write all the todos for the rest of the statements :P
       of Public, Inner, Private: self.parseVisibility()
-      else: 
-        if fallback.isNone():
-          self.parseLookaheadStmt()
-        else:
-          let next = fallback.unsafeGet()
-          self.next()
+      else: self.parseLookahead()
   )
 
 proc parseDecl(self: Parser): Node =
   let kind = self.eat()
   let idens = self.parseList(parseTypedIdent)
   discard self.expect(Assign)
-  let vals = self.parseList(parseNode)
+  let vals = self.parseList(gen(parseNode))
   Node(
     kind: Decl, 
     left: kind.left.clone(), 
@@ -370,7 +368,8 @@ proc parseVisibility(self: Parser): Node =
     visArg: arg,
   )
 
-proc parseLookaheadStmt(self: Parser): Node =
+proc parseLookahead(self: Parser): Node =
+  # Just control labels right now
   if self.pattern([Quote, Identifier, Colon]):
     let left = self.start()
     let label = self.parseIdent()
@@ -388,7 +387,8 @@ proc parseLookaheadStmt(self: Parser): Node =
       ctrlStmt: labeled,
     )
   
-  self.parseExpr()
+  self.panic(self.at(), fmt"Expected a statement, got {self.tt()} instead")
+  Node()
 
 # Expressions cascade
 proc parseExpr(self: Parser): Node =
@@ -438,7 +438,7 @@ proc parseFuncCall(self: Parser): Node =
   let left = self.parseUnary()
   if self.tt() == LeftParen:
     discard self.eat()
-    let args = self.parseList(parseNode)
+    let args = self.parseList(gen(parseNode))
     let right = self.expect(RightParen).right.clone()
     return Node(
       kind: FuncCall,
@@ -452,7 +452,7 @@ proc parseFuncCall(self: Parser): Node =
 proc parseUnary(self: Parser): Node =
   if self.tt() in Prefixing:
     let op = self.eat()
-    let arg = self.parseStmt(gen(parseAccessive))
+    let arg = self.parseNode(gen(parseAccessive))
     return Node(
       kind: UnaryOp, 
       left: op.left.clone(), 
@@ -482,7 +482,7 @@ proc parsePrimary(self: Parser): Node =
         discard self.expect(RightParen)
         inner
       else: 
-        self.panic(tok, fmt"Expected a statement or expression, got {self.tt()} instead")
+        self.panic(tok, fmt"Expected an expression, got {self.tt()} instead")
         Node() # Return something, even if an error will immediately be raised
   )
 
@@ -525,8 +525,15 @@ proc parseString(self: Parser): Node =
   Node(kind: String, left: tok.left.clone(), right: right, strElems: elems)
 
 # A large cascade of parsing
-proc parseNode(self: Parser): Node =
-  self.parseStmt()
+proc parseNode(self: Parser, fallback: Option[Generator] = none(Generator)): Node =
+  try:
+    self.parseStmt() 
+  except:
+    if fallback.isNone():
+      self.parseExpr()
+    else:
+      let next = fallback.unsafeGet()
+      self.next()
 
 # TODO: Change to return a Program object rather than just a seq[Node]
 proc parse*(self: Parser): seq[Node] =
@@ -534,7 +541,7 @@ proc parse*(self: Parser): seq[Node] =
   while self.idx <= self.tokens.len() - 1 and self.tt() != Eof:
     if self.ignore(): continue
 
-    nodes.add(self.parseNode())
+    nodes.add(self.parseStmt())
     discard self.expect([NewLine, Semicolon], canTerminate=true)
 
   nodes
