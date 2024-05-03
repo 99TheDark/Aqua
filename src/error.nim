@@ -44,7 +44,7 @@ proc panic*(self: ErrorGenerator, msg: string, left: Location, right: Location) 
   let (idx, row, col) = left.unpack()
   let (ending, endRow, _) = right.unpack()
   
-  let endIdx = (
+  let endIdx = 
     if row == endRow:
       ending
     else:
@@ -53,7 +53,6 @@ proc panic*(self: ErrorGenerator, msg: string, left: Location, right: Location) 
         sum += curRow.len() + 1
 
       sum - 1
-  )
 
   let numSize = size(row + 1)
 

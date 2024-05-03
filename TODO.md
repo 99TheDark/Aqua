@@ -1,4 +1,5 @@
 # TODO
+- Make function calls work as statements as well
 - Add assignment expressions
 - Add all whitespace characters
 - Add ternary operator `cond ? truthy : falsy`

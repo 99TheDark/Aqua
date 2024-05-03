@@ -53,10 +53,10 @@ defer {
     print(7)
 }
 
-/*var n = 2
+var n = 2
 n += 5
 print(n)
 n = 6
-print(n)*/
+print(n)
 
 break 'e'

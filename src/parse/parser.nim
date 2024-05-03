@@ -21,8 +21,7 @@ proc panic(self: Parser, tok: Token, msg: string) =
 
 proc at(self: Parser): Token = self.tokens[self.idx]
 
-proc tt(self: Parser): TokenType = 
-  self.at().typ
+proc tt(self: Parser): TokenType = self.at().typ
 
 proc eat(self: Parser): Token = 
   let tok = self.at()
@@ -186,14 +185,14 @@ proc parseType(self: Parser): Node =
 
 proc parseTypedIdent(self: Parser): Node = 
   let iden = self.parseIdent()
-  let (annot, right) = (
+  let (annot, right) = 
     if self.tt() == Colon:
       discard self.eat()
       let typ = self.parseType()
       (some(typ), typ.right.clone())
     else:
       (none(Node), iden.right.clone())
-  )
+  
   Node(kind: TypedIdent, left: iden.left.clone(), right: right, iden: iden, annot: annot)
 
 # Statements begin the cacade, with keyword-starting statements like 'if' and 'func'
@@ -240,29 +239,19 @@ proc parseDecl(self: Parser): Node =
     decVals: vals,
   )
 
-#[
-  let oper = (
-    if self.tt() in BinaryOperators: 
-      some(self.eat()) 
-    else: 
-      none(Token)
-  )
-]#
-
 proc parseIfStmt(self: Parser): Node =
   let left = self.start()
   let test = self.parseExpr()
   let body = self.parseBlock()
   
-  let (right, alt) = (
+  let (right, alt) = 
     if self.tt() == Else:
       let left = self.start()
-      let alt = (if self.tt() == If: self.parseIfStmt() else: self.parseBlock())
+      let alt = if self.tt() == If: self.parseIfStmt() else: self.parseBlock()
       alt.left = left
       (alt.right.clone(), some(alt))
     else:
       (body.right.clone(), none(Node))
-  )
 
   return Node(
     kind: IfStmt, 
@@ -334,13 +323,12 @@ proc parseContinue(self: Parser): Node =
 
 proc parseReturn(self: Parser): Node =
   let tok = self.eat()
-  let (val, right) = (
+  let (val, right) = 
     if self.tt().isLineEnd(): 
       (none(Node), tok.right.clone())
     else: 
       let node = self.parseNode()
       (some(node), node.right.clone())
-  )
 
   Node(kind: Return, left: tok.left.clone(), right: right, retVal: val)
 
@@ -366,7 +354,7 @@ proc parseVisibility(self: Parser): Node =
   )
 
 proc parseLookahead(self: Parser): Node =
-  # Just control labels right now
+  # Anything that can be a statement or expression
   if self.pattern([Quote, Identifier, Colon]):
     let left = self.start()
     let label = self.parseIdent()
