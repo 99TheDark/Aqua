@@ -1,9 +1,11 @@
 # TODO
-- Add defer statements
-- Add modules
+- Add assignment expressions
+- Stop expressions from being parsed when calling `parseStmt`, but allow when using `parseNode`
 - Add all whitespace characters
+- Add ternary operator `cond ? truthy : falsy`
 - Verify and catagorize numbers in parser (Decimal, Scientific, Integral, Based, Imaginary)
 - Implement `parseDestructure`
+- Add escape characters in lexer
 - Polish and finish how the OOP system will work
 - Finish up other language constructs & ideas
-- Add escape characters in lexer
+- Add modules

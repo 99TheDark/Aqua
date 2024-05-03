@@ -48,3 +48,8 @@ break "hello"
 return (7 * x - 4) ^ 5
 return
 yield "true == $(!false)"
+
+defer let x = 3
+defer {
+    print(7)
+}
