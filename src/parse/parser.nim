@@ -19,9 +19,6 @@ proc gen(fn: proc(self: Parser, fallback: Option[Generator] = none(Generator)): 
 proc panic(self: Parser, tok: Token, msg: string) =
   self.errgen.panic(msg, tok.left.clone(), tok.right.clone())
 
-proc panic(self: Parser, node: Node, msg: string) = 
-  self.errgen.panic(msg, node.left.clone(), node.right.clone())
-
 proc at(self: Parser): Token = self.tokens[self.idx]
 
 proc tt(self: Parser): TokenType = 
@@ -177,13 +174,6 @@ proc parseQuotive(self: Parser): Node =
   else:
     let label = self.parseIdent()
     Node(kind: Label, left: tok.left.clone(), right: label.right.clone(), label: label)
-  
-proc parseLabel(self: Parser): Node =
-  let node = self.parseQuotive()
-  if node.kind != Label:
-    self.panic(node, fmt"Expected a label, but got {node.kind} instead")
-  
-  node
 
 proc parseType(self: Parser): Node =
   let base = self.parseIdent()
@@ -318,18 +308,25 @@ proc parseLoop(self: Parser): Node =
 
 proc parseBreak(self: Parser): Node =
   let start = self.eat()
-  let label = (if self.tt().isLineEnd() or self.tt() != Quote: none(Node) else: some(self.parseLabel())) 
-  let arg = (if self.tt().isLineEnd(): none(Node) else: some(self.parseNode())) 
-  let right = (
-    if label.isSome(): 
-      label.unsafeGet().right 
-    elif arg.isSome(): 
-      arg.unsafeGet().right 
-    else: 
-      start.right
-  )
 
-  Node(kind: Break, left: start.left.clone(), right: right.clone(), breakLabel: label, breakArg: arg)
+  let (label, arg, right) = 
+    if self.tt().isLineEnd():
+      (none(Node), none(Node), start.right.clone())
+    elif self.tt() == Quote:
+      let first = self.parseQuotive()
+      if first.kind == Label:
+        if self.tt().isLineEnd():
+          (some(first), none(Node), first.right.clone())
+        else:
+          let second = self.parseNode()
+          (some(first), some(second), second.right.clone())
+      else:
+        (none(Node), some(first), first.right.clone())
+    else:
+      let first = self.parseNode()
+      (none(Node), some(first), first.right.clone())
+
+  Node(kind: Break, left: start.left.clone(), right: right, breakLabel: label, breakArg: arg)
 
 proc parseContinue(self: Parser): Node =
   let tok = self.eat()

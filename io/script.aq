@@ -36,7 +36,6 @@ let t = "x = $(/* I'm a comment! */ 3), y = $(true)."
 let thing = t.x?.y.z
 
 let complexThing: bool = !((1 - 3.4) ^ 2.65 >= 8.7) !& true
-
 let b = 5 - if !complexThing { break 3; } else { break 2; }
 
 pub let LineSize = 5
@@ -53,8 +52,6 @@ defer let x = 3
 defer {
     print(7)
 }
-
-3 - 1
 
 /*var n = 2
 n += 5
