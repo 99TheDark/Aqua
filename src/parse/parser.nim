@@ -96,6 +96,8 @@ proc parseReturn(self: Parser): Node
 proc parseDefer(self: Parser): Node
 proc parseYield(self: Parser): Node
 proc parseVisibility(self: Parser): Node
+proc parseTest(self: Parser): Node
+proc parseAssert(self: Parser): Node
 proc parseExpr(self: Parser): Node
 proc parseComparative(self: Parser): Node
 proc parseLogical(self: Parser): Node
@@ -142,6 +144,12 @@ proc parseList(self: Parser, node: Generator): seq[Node] =
       break
   
   list
+
+proc parseRawString(self: Parser): Node = 
+  let open = self.expect(DoubleQuote)
+  let str = self.expect(String)
+  let close = self.expect(DoubleQuote)
+  Node(kind: RawString, left: open.left.clone(), right: close.right.clone(), rawVal: str.val)
 
 proc parseIdent(self: Parser): Node =
   let tok = self.expect(Identifier)
@@ -222,6 +230,8 @@ proc parseStmt(self: Parser): Node =
       # TODO: Implement generic contraints
       # TODO: Write all the todos for the rest of the statements :P
       of Public, Inner, Private: self.parseVisibility()
+      of Test: self.parseTest()
+      of Assert: self.parseAssert()
       else: self.parseLookahead()
   )
 
@@ -318,6 +328,7 @@ proc parseBreak(self: Parser): Node =
   Node(kind: Break, left: start.left.clone(), right: right, breakLabel: label, breakArg: arg)
 
 proc parseContinue(self: Parser): Node =
+  # TODO: Continue to label, possibly
   let tok = self.eat()
   Node(kind: Continue, left: tok.left.clone(), right: tok.right.clone())
 
@@ -333,14 +344,14 @@ proc parseReturn(self: Parser): Node =
   Node(kind: Return, left: tok.left.clone(), right: right, retVal: val)
 
 proc parseDefer(self: Parser): Node =
-  let tok = self.eat()
+  let left = self.start()
   let body = self.parseNode()
-  Node(kind: Defer, left: tok.left.clone(), right: tok.right.clone(), deferred: body)
+  Node(kind: Defer, left: left, right: body.right.clone(), deferred: body)
 
 proc parseYield(self: Parser): Node =
-  let tok = self.eat()
+  let left = self.start()
   let val = self.parseNode()
-  Node(kind: Yield, left: tok.left.clone(), right: val.right.clone(), yieldVal: val)
+  Node(kind: Yield, left: left, right: val.right.clone(), yieldVal: val)
 
 proc parseVisibility(self: Parser): Node =
   let tok = self.eat()
@@ -352,6 +363,23 @@ proc parseVisibility(self: Parser): Node =
     visKind: mapVis(tok.typ),
     visArg: arg,
   )
+
+proc parseTest(self: Parser): Node =
+  let left = self.start()
+  let name = self.parseRawString()
+  let body = self.parseBlock()
+  Node(
+    kind: Test,
+    left: left,
+    right: body.right.clone(),
+    testName: name,
+    testBody: body,
+  )
+
+proc parseAssert(self: Parser): Node =
+  let left = self.start()
+  let claim = self.parseExpr()
+  Node(kind: Assert, left: left, right: claim.right.clone(), claim: claim)
 
 proc parseLookahead(self: Parser): Node =
   # Anything that can be a statement or expression

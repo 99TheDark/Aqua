@@ -3,6 +3,16 @@ for username, website in login {
     
 }
 
+test "'n' check" {
+    var n = 2
+    /*n += 5
+    print(n)
+    n = 6
+    print(n)*/
+    
+    assert n == 6
+}
+
 'outer:
 for i in 0..30 {
     for j in 5..=12 {
@@ -53,11 +63,5 @@ defer {
     3 + 2
     print(7)
 }
-
-var n = 2
-n += 5
-print(n)
-n = 6
-print(n)
 
 break 'e'

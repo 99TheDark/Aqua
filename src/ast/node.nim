@@ -24,7 +24,7 @@ type Node* = ref object
 
     of String:
       strElems*: seq[Node]
-
+    
     of RawString:
       rawVal*: string
 
@@ -138,6 +138,7 @@ type Node* = ref object
     
     of Test:
       testName*: Node
+      testBody*: Node
     
     of Cast:
       to*: Node
