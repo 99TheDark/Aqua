@@ -25,8 +25,14 @@ proc tt(self: Parser): TokenType = self.at().typ
 
 proc eat(self: Parser): Token = 
   let tok = self.at()
-  self.idx += 1
+  if self.idx < self.tokens.len() - 1:
+    self.idx += 1
+  
   tok
+
+#[ proc peek(self: Parser, ahead: int = 1): TokenType =
+  let idx = self.idx + ahead
+  if idx < self.tokens.len(): self.tokens[idx].typ else: None ]#
 
 proc pattern(self: Parser, next: openArray[TokenType]): bool =
   for idx, wanted in next:
@@ -123,7 +129,7 @@ proc parseBlock(self: Parser): Node =
   while self.tt() != RightBrace:
     if self.ignore(): continue
 
-    stmts.add(self.parseStmt())
+    stmts.add(self.parseNode())
     if self.tt() != RightBrace:
       discard self.expect([NewLine, Semicolon], canTerminate=true)
 
@@ -144,6 +150,16 @@ proc parseList(self: Parser, node: Generator): seq[Node] =
       break
   
   list
+
+# TODO: Implement other kinds of destructuring
+proc parseDestructure(self: Parser, ident: Generator): Node =
+  let list = self.parseList(ident)
+  Node(
+    kind: ListDestructure,
+    left: list[0].left.clone(),
+    right: list[^1].right.clone(),
+    listIdens: list,
+  )
 
 proc parseRawString(self: Parser): Node = 
   let open = self.expect(DoubleQuote)
@@ -232,12 +248,30 @@ proc parseStmt(self: Parser): Node =
       of Public, Inner, Private: self.parseVisibility()
       of Test: self.parseTest()
       of Assert: self.parseAssert()
-      else: self.parseLookahead()
+      else: 
+        let idx = self.idx
+        try:
+          let idens = self.parseDestructure(parseIdent)
+          let oper = if self.tt() in BinaryOperators: some(self.eat().typ) else: none(TokenType)
+          discard self.expect(Assign)
+          let vals = self.parseList(gen(parseNode))
+          Node(
+            kind: Assign,
+            left: idens.left.clone(),
+            right: vals[^1].right.clone(),
+            assIdens: idens,
+            assOp: oper,
+            assVals: vals,
+          )
+        except:
+          self.idx = idx
+          self.parseLookahead()
   )
 
 proc parseDecl(self: Parser): Node =
   let kind = self.eat()
-  let idens = self.parseList(parseTypedIdent)
+  let idens = self.parseDestructure(parseTypedIdent)
+
   discard self.expect(Assign)
   let vals = self.parseList(gen(parseNode))
   Node(
@@ -391,7 +425,7 @@ proc parseLookahead(self: Parser): Node =
     while self.tt().isLineSeperator():
       discard self.eat()
 
-    let labeled = self.parseStmt()
+    let labeled = self.parseNode()
     return Node(
       kind: ControlLabel,
       left: left,
@@ -540,7 +574,7 @@ proc parseString(self: Parser): Node =
 # A large cascade of parsing
 proc parseNode(self: Parser, fallback: Option[Generator] = none(Generator)): Node =
   try:
-    self.parseStmt() 
+    self.parseStmt()
   except:
     if fallback.isNone():
       self.parseExpr()
@@ -552,9 +586,10 @@ proc parseNode(self: Parser, fallback: Option[Generator] = none(Generator)): Nod
 proc parse*(self: Parser): seq[Node] =
   var nodes: seq[Node] = @[]
   while self.idx <= self.tokens.len() - 1 and self.tt() != Eof:
-    if self.ignore(): continue
+    if self.ignore(): 
+      continue
 
-    nodes.add(self.parseStmt())
+    nodes.add(self.parseNode())
     discard self.expect([NewLine, Semicolon], canTerminate=true)
 
   nodes

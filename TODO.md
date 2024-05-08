@@ -1,8 +1,6 @@
 # TODO
-- Make function calls work as statements as well
 - Add assignment expressions
 - Add all whitespace characters
-- Add ternary operator `cond ? truthy : falsy`
 - Verify and catagorize numbers in parser (Decimal, Scientific, Integral, Based, Imaginary)
 - Implement `parseDestructure`
 - Add escape characters in lexer

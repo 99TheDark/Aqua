@@ -56,13 +56,16 @@ type Node* = ref object
 
     of Decl:
       decKind*: DeclKind
-      decIdens*: seq[Node]
+      decIdens*: Node
       decVals*: seq[Node]
 
     of Assign:
-      assIdens*: seq[Node]
+      assIdens*: Node
       assOp*: Option[TokenType]
       assVals*: seq[Node]
+    
+    of ListDestructure:
+      listIdens*: seq[Node]
 
     of FuncCall:
       callee*: Node

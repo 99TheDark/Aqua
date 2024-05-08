@@ -17,6 +17,8 @@ type
     Spread
     Decl
     Assign
+    ListDestructure
+    # TODO: Add TupleDestructure, ArrayDestructure and MapDestructure
     FuncCall
     Access
     SafeAccess
@@ -60,3 +62,6 @@ type
     PubVis
     InnVis
     PriVis
+
+proc isDestructure*(self: Kind): bool =
+  self == Ident or self == ListDestructure

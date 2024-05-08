@@ -5,10 +5,10 @@ for username, website in login {
 
 test "'n' check" {
     var n = 2
-    /*n += 5
+    n += 5
     print(n)
     n = 6
-    print(n)*/
+    print(n)
     
     assert n == 6
 }
