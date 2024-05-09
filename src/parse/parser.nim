@@ -30,6 +30,14 @@ proc eat(self: Parser): Token =
   
   tok
 
+proc attempt(self: Parser, trial: Generator, backup: Generator): Node =
+  let idx = self.idx
+  try:
+    self.trial()
+  except:
+    self.idx = idx
+    self.backup()
+
 #[ proc peek(self: Parser, ahead: int = 1): TokenType =
   let idx = self.idx + ahead
   if idx < self.tokens.len(): self.tokens[idx].typ else: None ]#
@@ -219,6 +227,20 @@ proc parseTypedIdent(self: Parser): Node =
   
   Node(kind: TypedIdent, left: iden.left.clone(), right: right, iden: iden, annot: annot)
 
+proc parseAssign(self: Parser): Node = 
+  let idens = self.parseDestructure(parseIdent)
+  let oper = if self.tt() in BinaryOperators: some(self.eat().typ) else: none(TokenType)
+  discard self.expect(Assign)
+  let vals = self.parseList(gen(parseNode))
+  Node(
+    kind: Assign,
+    left: idens.left.clone(),
+    right: vals[^1].right.clone(),
+    assIdens: idens,
+    assOp: oper,
+    assVals: vals,
+  )
+
 # Statements begin the cacade, with keyword-starting statements like 'if' and 'func'
 proc parseStmt(self: Parser): Node =
   return (
@@ -248,24 +270,7 @@ proc parseStmt(self: Parser): Node =
       of Public, Inner, Private: self.parseVisibility()
       of Test: self.parseTest()
       of Assert: self.parseAssert()
-      else: 
-        let idx = self.idx
-        try:
-          let idens = self.parseDestructure(parseIdent)
-          let oper = if self.tt() in BinaryOperators: some(self.eat().typ) else: none(TokenType)
-          discard self.expect(Assign)
-          let vals = self.parseList(gen(parseNode))
-          Node(
-            kind: Assign,
-            left: idens.left.clone(),
-            right: vals[^1].right.clone(),
-            assIdens: idens,
-            assOp: oper,
-            assVals: vals,
-          )
-        except:
-          self.idx = idx
-          self.parseLookahead()
+      else: self.attempt(parseAssign, parseLookahead)
   )
 
 proc parseDecl(self: Parser): Node =
