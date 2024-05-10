@@ -145,6 +145,12 @@ proc parseBlock(self: Parser): Node =
   let right = self.expect(RightBrace).right.clone()
   Node(kind: Block, left: left, right: right, stmts: stmts)
 
+proc parseGroup(self: Parser): Node = 
+  discard self.eat()
+  let inner = self.parseNode()
+  discard self.expect(RightParen)
+  inner
+
 proc parseList(self: Parser, node: Generator): seq[Node] =
   var list: seq[Node] = @[]
   while true:
@@ -201,6 +207,18 @@ proc parseTypedIdent(self: Parser): Node =
   
   Node(kind: TypedIdent, left: iden.left.clone(), right: right, iden: iden, annot: annot)
 
+proc parseTuple(self: Parser): Node =
+  let left = self.start()
+  let idens = self.parseList(gen(parseNode))
+  let close = self.expect(RightParen)
+  
+  Node(
+    kind: Tuple,
+    left: left,
+    right: close.right.clone(),
+    tupList: idens,
+  )
+
 proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: Generator): Node =
   var lhs = self.parseNode(some(next))
   while self.tt() in catagory:
@@ -241,7 +259,11 @@ proc parseParam(self: Parser): Node =
 
 proc parseFuncBody(self: Parser): Node = 
   let start = self.expect(LeftParen)
-  let params = self.parseList(parseParam)
+  let params = 
+    if self.tt() == RightParen:
+      @[]
+    else:
+      self.parseList(parseParam)
   discard self.expect(RightParen)
   let ret = 
     if self.tt() == Colon:
@@ -588,11 +610,7 @@ proc parsePrimary(self: Parser): Node =
       of DoubleQuote: self.parseString()
       of Quote: self.parseQuotive()
       of Identifier: self.parseIdent()
-      of LeftParen:
-        discard self.eat()
-        let inner = self.parseNode()
-        discard self.expect(RightParen)
-        inner
+      of LeftParen: self.attempt(parseTuple, parseGroup)
       else: 
         self.panic(tok, fmt"Expected an expression, got {self.tt()} instead")
         Node() # Return something, even if an error will immediately be raised
