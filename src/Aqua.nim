@@ -1,7 +1,9 @@
 import lex/lexer, parse/parser, error
-import pretty, unicode
+import pretty, unicode, std/times, strformat
 
 when isMainModule:
+  let start = cpuTime()
+
   let src = readFile("io/script.aq")
   let code = src.toRunes()
 
@@ -14,6 +16,9 @@ when isMainModule:
   
   var aParser = newParser(aLexer.tokens, errgen)
   let ast = aParser.parse()
+
+  let diff = cpuTime() - start
+  echo fmt"Ran in {diff * 1000}ms"
 
   # print aLexer.tokens
   print ast
