@@ -150,6 +150,15 @@ type Node* = ref object
     
     of Catch:
       caught*: Node
+
+    of Field:
+      fieldIdens*: seq[Node]
+      fieldAnnot*: Node
+      fieldDefault*: Option[Node]
+    
+    of Struct:
+      strName*: Node
+      strFields*: seq[Node]
     
     of Assert:
       claim*: Node

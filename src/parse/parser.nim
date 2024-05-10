@@ -16,8 +16,8 @@ proc gen(fn: proc(self: Parser, fallback: Option[Generator] = none(Generator)): 
   proc(self: Parser): Node = self.fn()
 
 # Parser methods
-proc panic(self: Parser, tok: Token, msg: string) =
-  self.errgen.panic(msg, tok.left.clone(), tok.right.clone())
+proc panic(self: Parser, tok: Token, msg: string, fallback: bool = false) =
+  self.errgen.panic(msg, tok.left.clone(), tok.right.clone(), fallback)
 
 proc at(self: Parser): Token = self.tokens[self.idx]
 
@@ -110,6 +110,7 @@ proc parseFunction(self: Parser): Node
 proc parseReturn(self: Parser): Node
 proc parseDefer(self: Parser): Node
 proc parseYield(self: Parser): Node
+proc parseStruct(self: Parser): Node
 proc parseVisibility(self: Parser): Node
 proc parseTest(self: Parser): Node
 proc parseAssert(self: Parser): Node
@@ -151,14 +152,23 @@ proc parseGroup(self: Parser): Node =
   discard self.expect(RightParen)
   inner
 
-proc parseList(self: Parser, node: Generator): seq[Node] =
+proc parseList(self: Parser, node: Generator, endComma: bool = false): seq[Node] =
   var list: seq[Node] = @[]
   while true:
-    if self.tt().isLineSeperator():
+    if self.tt().isLineEnd():
       discard self.eat()
       continue
 
-    list.add(self.node())
+    let idx = self.idx
+    try:
+      list.add(self.node())
+    except:
+      if endComma:
+        self.idx = idx
+        break
+      else:
+        raise getCurrentException()
+
     if self.tt() == Comma:
       discard self.eat()
     else:
@@ -283,6 +293,27 @@ proc parseFuncBody(self: Parser): Node =
     body: body,
   )
 
+proc parseField(self: Parser): Node =
+  let idens = self.parseList(parseIdent)
+  discard self.expect(Colon)
+  let annot = self.parseType()
+  let (default, right) = 
+    if self.tt() == Assign:
+      discard self.eat()
+      let val = self.parseExpr()
+      (some(val), val.right.clone())
+    else:
+      (none(Node), annot.right.clone())
+  
+  Node(
+    kind: Field,
+    left: idens[0].left.clone(),
+    right: right,
+    fieldIdens: idens,
+    fieldAnnot: annot,
+    fieldDefault: default,
+  )
+
 proc parseQuotive(self: Parser): Node =
   let tok = self.eat()
   if self.tt() == Character:
@@ -328,6 +359,7 @@ proc parseStmt(self: Parser): Node =
       of Return: self.parseReturn()
       of Defer: self.parseDefer()
       of Yield: self.parseYield()
+      of Structure: self.parseStruct()
       # TODO: Implement class and all its subnodes
       # TODO: Implement enum
       # TODO: Implement generic contraints
@@ -474,6 +506,24 @@ proc parseYield(self: Parser): Node =
   let val = self.parseNode()
   Node(kind: Yield, left: left, right: val.right.clone(), yieldVal: val)
 
+proc parseStruct(self: Parser): Node =
+  let left = self.start()
+  let name = self.parseIdent()
+  discard self.expect(LeftBrace)
+  let fields = self.parseList(parseField, true)
+  while self.tt().isLineSeperator():
+    discard self.eat()
+
+  let close = self.expect(RightBrace)
+  
+  Node(
+    kind: Struct,
+    left: left,
+    right: close.right.clone(),
+    strName: name,
+    strFields: fields,
+  )
+
 proc parseVisibility(self: Parser): Node =
   let tok = self.eat()
   let arg = self.parseNode()
@@ -521,7 +571,7 @@ proc parseLookahead(self: Parser): Node =
       ctrlStmt: labeled,
     )
   
-  self.panic(self.at(), fmt"Expected a statement, got {self.tt()} instead")
+  self.panic(self.at(), fmt"Expected a statement, got {self.tt()} instead", true)
   Node()
 
 # Expressions cascade
@@ -612,7 +662,7 @@ proc parsePrimary(self: Parser): Node =
       of Identifier: self.parseIdent()
       of LeftParen: self.attempt(parseTuple, parseGroup)
       else: 
-        self.panic(tok, fmt"Expected an expression, got {self.tt()} instead")
+        self.panic(tok, fmt"Expected an expression, got {self.tt()} instead", true)
         Node() # Return something, even if an error will immediately be raised
   )
 
@@ -659,11 +709,15 @@ proc parseNode(self: Parser, fallback: Option[Generator] = none(Generator)): Nod
   try:
     self.parseStmt()
   except:
-    if fallback.isNone():
-      self.parseExpr()
+    let e = cast[AquaError](getCurrentException())
+    if e.fallback:
+      if fallback.isNone():
+        self.parseExpr()
+      else:
+        let next = fallback.unsafeGet()
+        self.next()
     else:
-      let next = fallback.unsafeGet()
-      self.next()
+      raise e
 
 # TODO: Change to return a Program object rather than just a seq[Node]
 proc parse*(self: Parser): seq[Node] =

@@ -19,6 +19,7 @@ proc size(num: int): int =
 
 type 
   AquaError* = ref object of CatchableError
+    fallback*: bool
 
   ErrorGenerator* = ref object
     lines: seq[seq[Rune]]
@@ -40,7 +41,7 @@ proc `$`*(self: ErrorGenerator): string =
 proc newErrorGenerator*(code: seq[Rune]): ErrorGenerator =
   ErrorGenerator(lines: code.split(Rune(ord('\n'))))
 
-proc panic*(self: ErrorGenerator, msg: string, left: Location, right: Location) =
+proc panic*(self: ErrorGenerator, msg: string, left: Location, right: Location, fallback: bool) =
   let (idx, row, col) = left.unpack()
   let (ending, endRow, _) = right.unpack()
   
@@ -68,5 +69,6 @@ proc panic*(self: ErrorGenerator, msg: string, left: Location, right: Location) 
   
   let err = AquaError()
   err.msg = str
+  err.fallback = fallback
 
   raise err

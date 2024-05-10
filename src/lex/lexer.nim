@@ -16,7 +16,7 @@ type Lexer* = ref object
   tokens*: seq[Token]
 
 proc panic(self: Lexer, left: Location, right: Location, msg: string) =
-  self.errgen.panic(msg, left, right)
+  self.errgen.panic(msg, left, right, false)
 
 # Many private methods for lexing
 proc lexNorm(self: Lexer): bool =

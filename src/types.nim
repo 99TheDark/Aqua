@@ -99,6 +99,7 @@ type TokenType* = enum
   Use
 
   # Complex types
+  Structure
   Class
   New
   Operator
@@ -176,6 +177,7 @@ const Keywords* = {
   "inn": Inner,
   "mod": Module,
   "use": Use,
+  "struct": Structure,
   "class": Class,
   "new": New,
   "oper": Operator,

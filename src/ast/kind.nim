@@ -46,6 +46,8 @@ type
     Throw
     Try
     Catch
+    Field
+    Struct
     Assert
     Test
     Cast
