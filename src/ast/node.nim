@@ -73,7 +73,7 @@ type Node* = ref object
     
     of TagCall:
       tagCallee*: Node
-      tagArgs*: seq[Node]
+      tagArg*: Node
 
     of Access, SafeAccess:
       parent*: Node

@@ -90,3 +90,6 @@ let digitsOfPi = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3]
 tag reversed(arr: array): array {
     // ...
 }
+
+let countdown = reversed[1, 2, 3]
+asm"mov edx, len"

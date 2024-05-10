@@ -124,6 +124,7 @@ proc parseMultiplicative(self: Parser): Node
 proc parseExponentiative(self: Parser): Node
 proc parseRange(self: Parser): Node
 proc parseFuncCall(self: Parser): Node
+proc parseTagCall(self: Parser): Node
 proc parseUnary(self: Parser): Node
 proc parseAccessive(self: Parser): Node
 proc parsePrimary(self: Parser): Node
@@ -644,7 +645,7 @@ proc parseRange(self: Parser): Node =
   left
 
 proc parseFuncCall(self: Parser): Node = 
-  let left = self.parseUnary()
+  let left = self.parseTagCall()
   if self.tt() == LeftParen:
     discard self.eat()
     let args = self.parseList(gen(parseNode))
@@ -657,6 +658,23 @@ proc parseFuncCall(self: Parser): Node =
       fnArgs: args,
     )
   left
+
+proc parseTagCall(self: Parser): Node = 
+  let left = self.parseUnary()
+  let arg = case self.tt():
+    # TODO: Add Quote/char
+    of DoubleQuote: self.parseString()
+    of LeftBracket: self.parseArray()
+    # TODO: Add LeftBrace/map
+    else: return left
+  
+  Node(
+    kind: TagCall,
+    left: left.left.clone(),
+    right: arg.right.clone(),
+    tagCallee: left,
+    tagArg: arg,
+  )
 
 proc parseUnary(self: Parser): Node =
   if self.tt() in Prefixing:
