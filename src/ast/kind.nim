@@ -20,6 +20,7 @@ type
     ListDestructure
     # TODO: Add TupleDestructure, ArrayDestructure and MapDestructure
     FuncCall
+    TagCall
     Access
     SafeAccess
     Index
@@ -46,6 +47,7 @@ type
     Throw
     Try
     Catch
+    Tag
     Field
     Struct
     Assert

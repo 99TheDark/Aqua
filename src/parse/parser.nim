@@ -110,6 +110,7 @@ proc parseFunction(self: Parser): Node
 proc parseReturn(self: Parser): Node
 proc parseDefer(self: Parser): Node
 proc parseYield(self: Parser): Node
+proc parseTag(self: Parser): Node
 proc parseStruct(self: Parser): Node
 proc parseVisibility(self: Parser): Node
 proc parseTest(self: Parser): Node
@@ -217,16 +218,27 @@ proc parseTypedIdent(self: Parser): Node =
   
   Node(kind: TypedIdent, left: iden.left.clone(), right: right, iden: iden, annot: annot)
 
+# TODO: Move parseTuple & parseArray to the bottom
 proc parseTuple(self: Parser): Node =
   let left = self.start()
-  let idens = self.parseList(gen(parseNode))
+  let items = self.parseList(gen(parseNode))
   let close = self.expect(RightParen)
-  
   Node(
     kind: Tuple,
     left: left,
     right: close.right.clone(),
-    tupList: idens,
+    tupList: items,
+  )
+
+proc parseArray(self: Parser): Node = 
+  let left = self.start()
+  let items = self.parseList(gen(parseNode), true)
+  let close = self.expect(RightBracket)
+  Node(
+    kind: Array,
+    left: left,
+    right: close.right.clone(),
+    arrList: items,
   )
 
 proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: Generator): Node =
@@ -359,6 +371,7 @@ proc parseStmt(self: Parser): Node =
       of Return: self.parseReturn()
       of Defer: self.parseDefer()
       of Yield: self.parseYield()
+      of Tag: self.parseTag()
       of Structure: self.parseStruct()
       # TODO: Implement class and all its subnodes
       # TODO: Implement enum
@@ -506,6 +519,18 @@ proc parseYield(self: Parser): Node =
   let val = self.parseNode()
   Node(kind: Yield, left: left, right: val.right.clone(), yieldVal: val)
 
+proc parseTag(self: Parser): Node =
+  let left = self.start()
+  let name = self.parseIdent()
+  let body = self.parseFuncBody()
+  Node(
+    kind: Tag,
+    left: left,
+    right: body.right.clone(),
+    tagName: name,
+    tagBody: body,
+  )
+
 proc parseStruct(self: Parser): Node =
   let left = self.start()
   let name = self.parseIdent()
@@ -628,8 +653,8 @@ proc parseFuncCall(self: Parser): Node =
       kind: FuncCall,
       left: left.left.clone(),
       right: right,
-      callee: left,
-      args: args,
+      fnCallee: left,
+      fnArgs: args,
     )
   left
 
@@ -661,6 +686,7 @@ proc parsePrimary(self: Parser): Node =
       of Quote: self.parseQuotive()
       of Identifier: self.parseIdent()
       of LeftParen: self.attempt(parseTuple, parseGroup)
+      of LeftBracket: self.parseArray()
       else: 
         self.panic(tok, fmt"Expected an expression, got {self.tt()} instead", true)
         Node() # Return something, even if an error will immediately be raised

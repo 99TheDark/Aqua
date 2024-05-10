@@ -114,6 +114,7 @@ type TokenType* = enum
   Iterator
   Yield
   Distinct
+  Tag
   External
 
   # Accessor
@@ -192,6 +193,7 @@ const Keywords* = {
   "iterator": Iterator,
   "yield": Yield,
   "distinct": Distinct,
+  "tag": Tag,
   "extern": External,
   "throw": Throw,
   "try": Try,

@@ -68,8 +68,12 @@ type Node* = ref object
       listIdens*: seq[Node]
 
     of FuncCall:
-      callee*: Node
-      args*: seq[Node]
+      fnCallee*: Node
+      fnArgs*: seq[Node]
+    
+    of TagCall:
+      tagCallee*: Node
+      tagArgs*: seq[Node]
 
     of Access, SafeAccess:
       parent*: Node
@@ -150,6 +154,10 @@ type Node* = ref object
     
     of Catch:
       caught*: Node
+    
+    of Tag:
+      tagName*: Node
+      tagBody*: Node
 
     of Field:
       fieldIdens*: seq[Node]
