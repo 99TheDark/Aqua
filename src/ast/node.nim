@@ -117,6 +117,21 @@ type Node* = ref object
     
     of Label:
       label*: Node
+
+    of FuncBody:
+      params*: seq[Node]
+      error*: Option[Node]
+      ret*: Option[Node]
+      body*: Node
+    
+    of Param:
+      parIdens*: seq[Node]
+      parAnnot*: Node
+      parDefault*: Option[Node]
+
+    of Function:
+      fnName*: Option[Node]
+      fnBody*: Node
     
     of Return:
       retVal*: Option[Node]

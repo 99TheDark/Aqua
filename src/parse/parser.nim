@@ -106,6 +106,7 @@ proc parseDoWhileLoop(self: Parser): Node
 proc parseLoop(self: Parser): Node
 proc parseBreak(self: Parser): Node
 proc parseContinue(self: Parser): Node
+proc parseFunction(self: Parser): Node
 proc parseReturn(self: Parser): Node
 proc parseDefer(self: Parser): Node
 proc parseYield(self: Parser): Node
@@ -179,33 +180,6 @@ proc parseIdent(self: Parser): Node =
   let tok = self.expect(Identifier)
   Node(kind: Ident, left: tok.left.clone(), right: tok.right.clone(), name: tok.val)
 
-proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: Generator): Node =
-  var lhs = self.parseNode(some(next))
-  while self.tt() in catagory:
-    let tok = self.eat()
-    let rhs = self.parseNode(some(next))
-
-    lhs = Node(
-      kind: BinaryOp, 
-      left: lhs.left.clone(), 
-      right: rhs.right.clone(), 
-      lhs: lhs, 
-      rhs: rhs, 
-      binOp: tok.typ
-    )
-  
-  lhs
-
-proc parseQuotive(self: Parser): Node =
-  let tok = self.eat()
-  if self.tt() == Character:
-    let ch = self.eat().val
-    let endq = self.expect(Quote)
-    Node(kind: Char, left: tok.left.clone(), right: endq.right.clone(), charVal: ch.toRunes()[0])
-  else:
-    let label = self.parseIdent()
-    Node(kind: Label, left: tok.left.clone(), right: label.right.clone(), label: label)
-
 proc parseType(self: Parser): Node =
   let base = self.parseIdent()
   let left = base.left.clone()
@@ -226,6 +200,76 @@ proc parseTypedIdent(self: Parser): Node =
       (none(Node), iden.right.clone())
   
   Node(kind: TypedIdent, left: iden.left.clone(), right: right, iden: iden, annot: annot)
+
+proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: Generator): Node =
+  var lhs = self.parseNode(some(next))
+  while self.tt() in catagory:
+    let tok = self.eat()
+    let rhs = self.parseNode(some(next))
+
+    lhs = Node(
+      kind: BinaryOp, 
+      left: lhs.left.clone(), 
+      right: rhs.right.clone(), 
+      lhs: lhs, 
+      rhs: rhs, 
+      binOp: tok.typ
+    )
+  
+  lhs
+
+proc parseParam(self: Parser): Node =
+  let idens = self.parseList(parseIdent)
+  discard self.expect(Colon)
+  let annot = self.parseType()
+  let (default, right) = 
+    if self.tt() == Assign:
+      discard self.eat()
+      let val = self.parseExpr()
+      (some(val), val.right.clone())
+    else:
+      (none(Node), annot.right.clone())
+  
+  Node(
+    kind: Param,
+    left: idens[0].left.clone(),
+    right: right,
+    parIdens: idens,
+    parAnnot: annot,
+    parDefault: default,
+  )
+
+proc parseFuncBody(self: Parser): Node = 
+  let start = self.expect(LeftParen)
+  let params = self.parseList(parseParam)
+  discard self.expect(RightParen)
+  let ret = 
+    if self.tt() == Colon:
+      discard self.eat()
+      some(self.parseType())
+    else:
+      none(Node)
+  let body = self.parseBlock()
+
+  Node(
+    kind: FuncBody,
+    left: start.left.clone(),
+    right: body.right.clone(),
+    params: params,
+    error: none(Node),
+    ret: ret,
+    body: body,
+  )
+
+proc parseQuotive(self: Parser): Node =
+  let tok = self.eat()
+  if self.tt() == Character:
+    let ch = self.eat().val
+    let endq = self.expect(Quote)
+    Node(kind: Char, left: tok.left.clone(), right: endq.right.clone(), charVal: ch.toRunes()[0])
+  else:
+    let label = self.parseIdent()
+    Node(kind: Label, left: tok.left.clone(), right: label.right.clone(), label: label)
 
 proc parseAssign(self: Parser): Node = 
   let idens = self.parseDestructure(parseIdent)
@@ -258,11 +302,10 @@ proc parseStmt(self: Parser): Node =
       # TODO: Implement match
       of Break: self.parseBreak()
       of Continue: self.parseContinue()
+      of Function: self.parseFunction()
       of Return: self.parseReturn()
       of Defer: self.parseDefer()
       of Yield: self.parseYield()
-      # TODO: Implement func
-      # TODO: Implement return
       # TODO: Implement class and all its subnodes
       # TODO: Implement enum
       # TODO: Implement generic contraints
@@ -367,9 +410,26 @@ proc parseBreak(self: Parser): Node =
   Node(kind: Break, left: start.left.clone(), right: right, breakLabel: label, breakArg: arg)
 
 proc parseContinue(self: Parser): Node =
-  # TODO: Continue to label, possibly
+  # TODO: Add continue statement to label
   let tok = self.eat()
   Node(kind: Continue, left: tok.left.clone(), right: tok.right.clone())
+
+proc parseFunction(self: Parser): Node =
+  let left = self.start()
+  let name = 
+    if self.tt() == Identifier:
+      some(self.parseIdent())
+    else:
+      none(Node)
+  let body = self.parseFuncBody()
+
+  Node(
+    kind: Function,
+    left: left,
+    right: body.right.clone(),
+    fnName: name,
+    fnBody: body,
+  )
 
 proc parseReturn(self: Parser): Node =
   let tok = self.eat()

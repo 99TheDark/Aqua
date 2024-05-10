@@ -37,6 +37,9 @@ type
     Break
     Continue
     Label
+    FuncBody
+    Param
+    Function
     Return
     Defer
     Yield

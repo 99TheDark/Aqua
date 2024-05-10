@@ -65,3 +65,7 @@ defer {
 }
 
 break 'e'
+
+pub func add(a, b: int, c: int = 0): int {
+    return a + b + c
+}
