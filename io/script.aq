@@ -77,7 +77,6 @@ pub struct Point {
 }
 
 struct DBStudent {
-    id: uint,
     firstName, lastName: string,
     middleName: string? = null,
     grade: uint,
@@ -93,3 +92,6 @@ tag reversed(arr: array): array {
 
 let countdown = reversed[1, 2, 3]
 asm"mov edx, len"
+
+// let timmy = DBStudent { firstName: "Timmothy", lastName: "Jacobs", grade: 3, absences: 5 }
+// let { first: firstName, last: lastName } = timmy

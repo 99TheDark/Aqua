@@ -8,3 +8,4 @@
 - Add modules
 - Add other kinds of destructuring
 - Add generic parameters to functions
+- Unbounded ranges (`..50`, `3..`, `..`)

@@ -39,8 +39,15 @@ type Node* = ref object
     of Array:
       arrList*: seq[Node]
 
+    of Map:
+      mapPairs*: seq[Node]
+
     of Tuple:
       tupList*: seq[Node]
+
+    of Pair:
+      pairKey*: Node
+      pairVal*: Node
     
     of BinaryOp:
       lhs*: Node

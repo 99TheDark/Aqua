@@ -11,7 +11,9 @@ type
     Range
     Null
     Array
+    Map
     Tuple
+    Pair
     BinaryOp
     UnaryOp
     Spread

@@ -1,4 +1,4 @@
-import ../ast/[node, kind, mapping], ../[token, types, error], message, ../lex/location, ../operators
+import ../ast/[node, kind, mapping], ../[token, types, error], message, ../lex/location, ../operators, ../todo
 import strformat, strutils, unicode, options
 
 type 
@@ -116,6 +116,7 @@ proc parseVisibility(self: Parser): Node
 proc parseTest(self: Parser): Node
 proc parseAssert(self: Parser): Node
 proc parseExpr(self: Parser): Node
+proc parsePair(self: Parser): Node
 proc parseComparative(self: Parser): Node
 proc parseLogical(self: Parser): Node
 proc parseShifting(self: Parser): Node
@@ -132,6 +133,9 @@ proc parseBoolean(self: Parser): Node
 proc parseNull(self: Parser): Node
 proc parseNumber(self: Parser): Node
 proc parseString(self: Parser): Node
+proc parseArray(self: Parser): Node
+proc parseMap(self: Parser): Node
+proc parseTuple(self: Parser): Node
 
 # More general parsing
 proc parseBlock(self: Parser): Node =
@@ -218,29 +222,6 @@ proc parseTypedIdent(self: Parser): Node =
       (none(Node), iden.right.clone())
   
   Node(kind: TypedIdent, left: iden.left.clone(), right: right, iden: iden, annot: annot)
-
-# TODO: Move parseTuple & parseArray to the bottom
-proc parseTuple(self: Parser): Node =
-  let left = self.start()
-  let items = self.parseList(gen(parseNode))
-  let close = self.expect(RightParen)
-  Node(
-    kind: Tuple,
-    left: left,
-    right: close.right.clone(),
-    tupList: items,
-  )
-
-proc parseArray(self: Parser): Node = 
-  let left = self.start()
-  let items = self.parseList(gen(parseNode), true)
-  let close = self.expect(RightBracket)
-  Node(
-    kind: Array,
-    left: left,
-    right: close.right.clone(),
-    arrList: items,
-  )
 
 proc parseBinaryOp(self: Parser, catagory: openArray[TokenType], next: Generator): Node =
   var lhs = self.parseNode(some(next))
@@ -602,7 +583,22 @@ proc parseLookahead(self: Parser): Node =
 
 # Expressions cascade
 proc parseExpr(self: Parser): Node =
-  self.parseComparative()
+  self.parsePair()
+
+proc parsePair(self: Parser): Node = 
+  let left = self.parseComparative()
+  if self.tt() == Colon:
+    discard self.eat()
+    let right = self.parseComparative()
+    return Node(
+      kind: Pair, 
+      left: left.left.clone(), 
+      right: right.right.clone(), 
+      pairKey: left, 
+      pairVal: right
+    )
+    
+  left
 
 proc parseComparative(self: Parser): Node = 
   self.parseBinaryOp(Comparative, parseLogical)
@@ -747,6 +743,31 @@ proc parseString(self: Parser): Node =
   let right = self.expect(DoubleQuote).right.clone()
   
   Node(kind: String, left: tok.left.clone(), right: right, strElems: elems)
+
+proc parseArray(self: Parser): Node = 
+  let left = self.start()
+  let items = self.parseList(gen(parseNode), true)
+  let close = self.expect(RightBracket)
+  Node(
+    kind: Array,
+    left: left,
+    right: close.right.clone(),
+    arrList: items,
+  )
+
+proc parseMap(self: Parser): Node =
+  todo("map")
+
+proc parseTuple(self: Parser): Node =
+  let left = self.start()
+  let items = self.parseList(gen(parseNode))
+  let close = self.expect(RightParen)
+  Node(
+    kind: Tuple,
+    left: left,
+    right: close.right.clone(),
+    tupList: items,
+  )
 
 # A large cascade of parsing
 proc parseNode(self: Parser, fallback: Option[Generator] = none(Generator)): Node =
